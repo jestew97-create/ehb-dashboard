@@ -455,7 +455,7 @@ function render(){
   const fu=f.filter(r=>r.type==='follow_up_call').length;
   const contacts=f.filter(r=>r.type==='contact_created').length;
 
-  // Deduplicate all stage-based metrics by contact ID — each contact counts once max
+  // Deduplicate all stage-based metrics by contact ID -- each contact counts once max
   function uniqueStageCount(rows,keyword){
     return new Set(rows.filter(r=>r.stage&&r.stage.toLowerCase().includes(keyword)).map(r=>r.contact_id)).size;
   }
@@ -498,7 +498,7 @@ function render(){
   const coldPct=Math.round((cold/Math.max(coldG,1))*100);
   const pb=document.getElementById('pulse-bar');
 
-  // Pipeline value — use getPV deduplication logic (sum latest opp_value per unique contact per stage)
+  // Pipeline value -- use getPV deduplication logic (sum latest opp_value per unique contact per stage)
   const pipeStages=['new lead','attempting','follow up','nurture','verbal offer','purchase agreement sent','purchase agreement sign'];
   const seenPipe=new Set();
   let pipeVal=0;
@@ -549,17 +549,17 @@ function renderConv(f,fS){
   const verbal=Math.max(uCount(fS,'verbal offer'),1);
   const paSent=Math.max(uCount(fS,'purchase agreement sent'),1);
   const closed=new Set(f.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed')).map(r=>r.contact_id)).size;
-  function rt(a,b){return b<=0?'—':(Math.round((a/b)*1000)/10)+'%';}
+  function rt(a,b){return b<=0?'--':(Math.round((a/b)*1000)/10)+'%';}
   document.getElementById('conv').innerHTML=[
     ['Contacts added','New leads',rt(nl,contacts)],
     ['Cold calls (dials)','New leads',rt(nl,dials)],
     ['New leads','Verbal offer',rt(verbal,nl)],
     ['Verbal offer','PA sent',rt(paSent,verbal)],
     ['PA sent','Deal closed',rt(closed,paSent)],
-  ].map(([from,to,rate])=>`<div class="crow"><span style="color:var(--text2);">${from}</span><span style="color:var(--text3);font-size:10px;">→</span><span style="color:var(--text2);">${to}</span><span style="flex:1;"></span><span style="font-weight:700;">${rate}</span></div>`).join('');
+  ].map(([from,to,rate])=>`<div class="crow"><span style="color:var(--text2);">${from}</span><span style="color:var(--text3);font-size:10px;">-></span><span style="color:var(--text2);">${to}</span><span style="flex:1;"></span><span style="font-weight:700;">${rate}</span></div>`).join('');
 }
 
-// Contacts that fell through — excluded from all pipeline value calculations
+// Contacts that fell through -- excluded from all pipeline value calculations
 function getFellThroughIds(){
   return new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal fell through')).map(r=>r.contact_id));
 }
@@ -579,7 +579,7 @@ function renderPipeVal(stages){
   const fellCount=getFellThroughIds().size;
   document.getElementById('pipe-val').innerHTML=rows.map(r=>`<div class="prow"><span>${r.lb}</span><span><span style="font-size:10px;color:var(--text3);margin-right:10px;">${r.count} contacts</span><span style="font-weight:700;">${fmt(r.val)}</span></span></div>`).join('')+
   `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:12px;font-weight:700;border-top:1px solid var(--border);margin-top:4px;"><span>Total pipeline value</span><span>${fmt(total)}</span></div>`+
-  (fellCount>0?`<div style="margin-top:8px;padding:8px 12px;background:#e24b4a15;border-radius:8px;border:1px solid #e24b4a30;font-size:11px;color:#e24b4a;">⚠️ ${fellCount} deal${fellCount!==1?'s':''} fell through — excluded from pipeline value above.</div>`:'');
+  (fellCount>0?`<div style="margin-top:8px;padding:8px 12px;background:#e24b4a15;border-radius:8px;border:1px solid #e24b4a30;font-size:11px;color:#e24b4a;">!️ ${fellCount} deal${fellCount!==1?'s':''} fell through -- excluded from pipeline value above.</div>`:'');
 }
 
 function renderForecast(){
@@ -589,24 +589,24 @@ function renderForecast(){
   const l1S=[{lb:'New leads',key:'new lead',hl:false},{lb:'Appointments',key:'appointment',hl:false},{lb:'Follow ups',key:'follow up',hl:true},{lb:'Attempting contact',key:'attempting',hl:false},{lb:'Nurture',key:'nurture',hl:false}];
   let l1=0,l1r='';
   l1S.forEach(s=>{const {count,val}=getPV(s.key);const proj=Math.round(val*lr*or2*cr);l1+=proj;
-    if(s.hl){l1r+=`<div class="hlrow"><span style="font-weight:700;">⭐ ${s.lb} — primary source</span><span><span style="font-size:10px;color:var(--text3);margin-right:8px;">${count} contacts · ${fmt(val)}</span><span style="font-weight:700;color:#185fa5;">→ ${fmt(proj)}</span></span></div>`;}
-    else{l1r+=`<div class="lrow"><span style="color:var(--text2);">${s.lb} <span style="font-size:10px;color:var(--text3);">(${count} · ${fmt(val)})</span></span><span style="font-weight:700;">→ ${fmt(proj)}</span></div>`;}
+    if(s.hl){l1r+=`<div class="hlrow"><span style="font-weight:700;">* ${s.lb} -- primary source</span><span><span style="font-size:10px;color:var(--text3);margin-right:8px;">${count} contacts . ${fmt(val)}</span><span style="font-weight:700;color:#185fa5;">-> ${fmt(proj)}</span></span></div>`;}
+    else{l1r+=`<div class="lrow"><span style="color:var(--text2);">${s.lb} <span style="font-size:10px;color:var(--text3);">(${count} . ${fmt(val)})</span></span><span style="font-weight:700;">-> ${fmt(proj)}</span></div>`;}
   });
   const {count:vC,val:vV}=getPV('verbal offer');
   const l2=Math.round(vV*or2*cr);
   const l3S=[{lb:'PA sent',key:'purchase agreement sent'},{lb:'PA signed',key:'purchase agreement sign'},{lb:'Contracts sent to title',key:'contracts sent'},{lb:'Deal closed',key:'deal closed'}];
   let l3=0,l3r='';
-  l3S.forEach(s=>{const {count,val}=getPV(s.key);const proj=Math.round(val*cr);l3+=proj;l3r+=`<div class="lrow"><span style="color:var(--text2);">${s.lb} <span style="font-size:10px;color:var(--text3);">(${count} · ${fmt(val)})</span></span><span style="font-weight:700;color:#1d9e75;">→ ${fmt(proj)}</span></div>`;});
+  l3S.forEach(s=>{const {count,val}=getPV(s.key);const proj=Math.round(val*cr);l3+=proj;l3r+=`<div class="lrow"><span style="color:var(--text2);">${s.lb} <span style="font-size:10px;color:var(--text3);">(${count} . ${fmt(val)})</span></span><span style="font-weight:700;color:#1d9e75;">-> ${fmt(proj)}</span></div>`;});
   const blended=l1+l2+l3;const bpct=Math.round((blended/Math.max(goals.rev,1))*100);const bcol=pcc(Math.min(100,bpct));
   document.getElementById('forecast-layers').innerHTML=`
-    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 1 — Pre-offer leads</div><div class="lsub">Not yet offered · ${(lr*100).toFixed(0)}% offer → ${(or2*100).toFixed(1)}% contract → ${(cr*100).toFixed(0)}% close</div></div><div><div class="lamt" style="color:#378add;">${fmt(l1)}</div><div class="lamtsub">projected</div></div></div>${l1r}<div class="note">Certainty: Low — Follow Ups is your biggest opportunity.</div></div>
-    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 2 — Verbal offers made</div><div class="lsub">Already offered · ${(or2*100).toFixed(1)}% → contract → ${(cr*100).toFixed(0)}% → close</div></div><div><div class="lamt" style="color:#ba7517;">${fmt(l2)}</div><div class="lamtsub">projected</div></div></div><div class="lrow"><span style="color:var(--text2);">Verbal offer made <span style="font-size:10px;color:var(--text3);">(${vC} contacts · ${fmt(vV)})</span></span><span style="font-weight:700;">→ ${fmt(l2)}</span></div><div class="note">Certainty: Medium — offer made, waiting on seller decision.</div></div>
-    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 3 — Under contract</div><div class="lsub">PA signed & beyond · ${(cr*100).toFixed(0)}% close rate</div></div><div><div class="lamt" style="color:#1d9e75;">${fmt(l3)}</div><div class="lamtsub">projected</div></div></div>${l3r}<div class="note">Certainty: High — contract signed, most certain upcoming revenue.</div></div>
+    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 1 -- Pre-offer leads</div><div class="lsub">Not yet offered . ${(lr*100).toFixed(0)}% offer -> ${(or2*100).toFixed(1)}% contract -> ${(cr*100).toFixed(0)}% close</div></div><div><div class="lamt" style="color:#378add;">${fmt(l1)}</div><div class="lamtsub">projected</div></div></div>${l1r}<div class="note">Certainty: Low -- Follow Ups is your biggest opportunity.</div></div>
+    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 2 -- Verbal offers made</div><div class="lsub">Already offered . ${(or2*100).toFixed(1)}% -> contract -> ${(cr*100).toFixed(0)}% -> close</div></div><div><div class="lamt" style="color:#ba7517;">${fmt(l2)}</div><div class="lamtsub">projected</div></div></div><div class="lrow"><span style="color:var(--text2);">Verbal offer made <span style="font-size:10px;color:var(--text3);">(${vC} contacts . ${fmt(vV)})</span></span><span style="font-weight:700;">-> ${fmt(l2)}</span></div><div class="note">Certainty: Medium -- offer made, waiting on seller decision.</div></div>
+    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 3 -- Under contract</div><div class="lsub">PA signed & beyond . ${(cr*100).toFixed(0)}% close rate</div></div><div><div class="lamt" style="color:#1d9e75;">${fmt(l3)}</div><div class="lamtsub">projected</div></div></div>${l3r}<div class="note">Certainty: High -- contract signed, most certain upcoming revenue.</div></div>
     <div class="blended"><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Total blended forecast</div><div class="bnum" style="color:${bcol};">${fmt(blended)}</div><div class="bsub">${bpct}% of ${fmt(goals.rev)} monthly goal</div>
     <div class="bbgrid">
-      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 1 — pre-offer</div><div style="font-size:16px;font-weight:700;">${fmt(l1)}</div><div style="font-size:9px;color:var(--text3);">Low certainty</div><div style="height:4px;background:#378add;border-radius:99px;margin-top:6px;width:25%;"></div></div>
-      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 2 — verbal offer</div><div style="font-size:16px;font-weight:700;">${fmt(l2)}</div><div style="font-size:9px;color:var(--text3);">Medium certainty</div><div style="height:4px;background:#ba7517;border-radius:99px;margin-top:6px;width:55%;"></div></div>
-      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 3 — under contract</div><div style="font-size:16px;font-weight:700;">${fmt(l3)}</div><div style="font-size:9px;color:var(--text3);">High certainty</div><div style="height:4px;background:#1d9e75;border-radius:99px;margin-top:6px;width:85%;"></div></div>
+      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 1 -- pre-offer</div><div style="font-size:16px;font-weight:700;">${fmt(l1)}</div><div style="font-size:9px;color:var(--text3);">Low certainty</div><div style="height:4px;background:#378add;border-radius:99px;margin-top:6px;width:25%;"></div></div>
+      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 2 -- verbal offer</div><div style="font-size:16px;font-weight:700;">${fmt(l2)}</div><div style="font-size:9px;color:var(--text3);">Medium certainty</div><div style="height:4px;background:#ba7517;border-radius:99px;margin-top:6px;width:55%;"></div></div>
+      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 3 -- under contract</div><div style="font-size:16px;font-weight:700;">${fmt(l3)}</div><div style="font-size:9px;color:var(--text3);">High certainty</div><div style="height:4px;background:#1d9e75;border-radius:99px;margin-top:6px;width:85%;"></div></div>
     </div></div>
     <div class="note" style="margin-top:10px;">All projections use your estimated conversion rates. Auto-calibrates as real data accumulates.</div>`;
 }
@@ -617,7 +617,7 @@ function renderDealVel(stages){
   const uniqueInPipe=[...new Set(inPipe.map(r=>r.contact_id))];
   const oldest=uniqueInPipe.length>0?Math.max(...uniqueInPipe.map(cid=>{const latest=inPipe.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return Math.ceil((TODAY-new Date(latest.timestamp))/864e5);})):0;
 
-  // PA Sent stale alert — contacts sitting in Purchase Agreement Sent for 14+ days
+  // PA Sent stale alert -- contacts sitting in Purchase Agreement Sent for 14+ days
   const paSentRows=stages.filter(r=>r.stage&&r.stage.toLowerCase().includes('purchase agreement sent'));
   const paSentIds=[...new Set(paSentRows.map(r=>r.contact_id))];
   const stalePA=paSentIds.filter(cid=>{
@@ -625,7 +625,7 @@ function renderDealVel(stages){
     return Math.ceil((TODAY-new Date(latest.timestamp))/864e5)>=14;
   });
   const staleAlert=stalePA.length>0
-    ?`<div style="margin-top:10px;padding:10px 13px;background:#ba751720;border-radius:8px;border:1px solid #ba751740;font-size:11px;color:#ba7517;line-height:1.6;">⏰ <strong>${stalePA.length} contact${stalePA.length!==1?'s':''}</strong> have been sitting in <strong>Purchase Agreement Sent</strong> for 14+ days without signing. Follow up — these deals are going cold.</div>`
+    ?`<div style="margin-top:10px;padding:10px 13px;background:#ba751720;border-radius:8px;border:1px solid #ba751740;font-size:11px;color:#ba7517;line-height:1.6;">! <strong>${stalePA.length} contact${stalePA.length!==1?'s':''}</strong> have been sitting in <strong>Purchase Agreement Sent</strong> for 14+ days without signing. Follow up -- these deals are going cold.</div>`
     :'';
 
   // Missing opp value warning
@@ -640,7 +640,7 @@ function renderDealVel(stages){
       <div class="ctile"><div class="ctl">Avg deal cycle</div><div class="ctv">~90 days</div><div class="cts">Your estimate</div></div>
       <div class="ctile"><div class="ctl">Deals closed</div><div class="ctv">${closed}</div><div class="cts">All time</div></div>
       <div class="ctile"><div class="ctl">Oldest deal in pipe</div><div class="ctv">${oldest} days</div><div class="cts">Since last stage move*</div></div>
-      <div class="ctile"><div class="ctl">Expected close</div><div class="ctv">${oldest>0?'~'+Math.max(0,90-oldest)+'d':'—'}</div><div class="cts">Days remaining est.</div></div>
+      <div class="ctile"><div class="ctl">Expected close</div><div class="ctv">${oldest>0?'~'+Math.max(0,90-oldest)+'d':'--'}</div><div class="cts">Days remaining est.</div></div>
     </div>
     <div class="note">*Measured from last stage move, not from first contact date. Deals closed = unique contacts reaching Deal Closed in Disposition.</div>
     ${staleAlert}${missingAlert}`;
@@ -666,7 +666,7 @@ function renderCallBreakdown(f,acqContactIds,workDays){
     ${bar(totalWarm,fuGoal,'#1d9e75')}
     <div style="font-size:11px;color:var(--text2);margin-bottom:4px;margin-top:8px;">Cold prospecting calls (goal: ${coldGoal})</div>
     ${bar(trueCold,coldGoal,'#378add')}
-    <div class="note">Cross-referenced by contact ID — any call to a contact in your Acquisitions pipeline counts as a warm call.</div>`;
+    <div class="note">Cross-referenced by contact ID -- any call to a contact in your Acquisitions pipeline counts as a warm call.</div>`;
 }
 
 function calcCosts(){
@@ -683,7 +683,7 @@ function calcCosts(){
   const rev=closedMIds.reduce((s,cid)=>{const latest=closedM.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return s+(parseFloat(latest?.opp_value)||0);},0);
   if(total===0){document.getElementById('cost-results').innerHTML=`<div class="note" style="margin-top:10px;">Enter expenses above to see ROI and cost metrics.</div>`;return;}
   const roi=Math.round((rev/total)*10)/10;const rc=pcc(Math.min(100,roi>=5?100:roi>=2?65:20));
-  document.getElementById('cost-results').innerHTML=`<div class="roi-bar" style="border-left-color:${rc};"><div style="font-size:28px;font-weight:700;color:${rc};">${roi}x ROI</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">${fmt(total)} spent → ${fmt(rev)} revenue this month</div></div><div class="crgrid"><div class="ctile"><div class="ctl">Total expenses</div><div class="ctv">${fmt(total)}</div><div class="cts">This month</div></div><div class="ctile"><div class="ctl">Cost per contact</div><div class="ctv">${fmt(Math.round(total/contacts))}</div><div class="cts">${contacts} contacts</div></div><div class="ctile"><div class="ctl">Cost per new lead</div><div class="ctv">${fmt(Math.round(total/nl))}</div><div class="cts">${nl} leads</div></div><div class="ctile"><div class="ctl">Cost per verbal offer</div><div class="ctv">${fmt(Math.round(total/verbal))}</div><div class="cts">${verbal} offers</div></div><div class="ctile"><div class="ctl">Cost per deal</div><div class="ctv">${fmt(Math.round(total/deals))}</div><div class="cts">${deals} deal(s)</div></div><div class="ctile"><div class="ctl">Return on spend</div><div class="ctv" style="color:${rc};">${roi}x</div><div class="cts">${roi>=5?'Excellent':roi>=2?'Strong':'Needs work'}</div></div></div>`;
+  document.getElementById('cost-results').innerHTML=`<div class="roi-bar" style="border-left-color:${rc};"><div style="font-size:28px;font-weight:700;color:${rc};">${roi}x ROI</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">${fmt(total)} spent -> ${fmt(rev)} revenue this month</div></div><div class="crgrid"><div class="ctile"><div class="ctl">Total expenses</div><div class="ctv">${fmt(total)}</div><div class="cts">This month</div></div><div class="ctile"><div class="ctl">Cost per contact</div><div class="ctv">${fmt(Math.round(total/contacts))}</div><div class="cts">${contacts} contacts</div></div><div class="ctile"><div class="ctl">Cost per new lead</div><div class="ctv">${fmt(Math.round(total/nl))}</div><div class="cts">${nl} leads</div></div><div class="ctile"><div class="ctl">Cost per verbal offer</div><div class="ctv">${fmt(Math.round(total/verbal))}</div><div class="cts">${verbal} offers</div></div><div class="ctile"><div class="ctl">Cost per deal</div><div class="ctv">${fmt(Math.round(total/deals))}</div><div class="cts">${deals} deal(s)</div></div><div class="ctile"><div class="ctl">Return on spend</div><div class="ctv" style="color:${rc};">${roi}x</div><div class="cts">${roi>=5?'Excellent':roi>=2?'Strong':'Needs work'}</div></div></div>`;
 }
 
 function calcGoals(){
@@ -697,12 +697,12 @@ function renderDigest(){
   const lMon=new Date(mon);lMon.setDate(mon.getDate()-7);const lSun=new Date(mon);lSun.setDate(mon.getDate()-1);
   const tw=data.filter(r=>inR(r,mon,TODAY));const lw=data.filter(r=>inR(r,lMon,lSun));
   function wc(d,t){return d.filter(r=>r.type===t).length;}
-  function chg(a,b){if(b===0)return a>0?'+'+a:'—';const p=Math.round(((a-b)/b)*100);return(p>=0?'+':'')+p+'%';}
+  function chg(a,b){if(b===0)return a>0?'+'+a:'--';const p=Math.round(((a-b)/b)*100);return(p>=0?'+':'')+p+'%';}
   function cc(a,b){return a>=b?'#1d9e75':'#e24b4a';}
   const metrics=[{lb:'Cold calls',tw:wc(tw,'cold_call'),lw:wc(lw,'cold_call')},{lb:'Follow-up calls',tw:wc(tw,'follow_up_call'),lw:wc(lw,'follow_up_call')},{lb:'New contacts',tw:wc(tw,'contact_created'),lw:wc(lw,'contact_created')},{lb:'Verbal offers',tw:tw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,lw:lw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length}];
   const coldPct=Math.round((wc(tw,'cold_call')/Math.max(goals.cold*5,1))*100);
-  const insight=coldPct>=80?'Strong week — dial volume is solid. Keep the momentum going.':coldPct>=50?'Dial volume is behind pace. Prioritize hitting your daily call target.':'Call volume is significantly off track. Dials are your most important activity — everything downstream depends on it.';
-  document.getElementById('weekly-digest').innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})} — ${TODAY.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>${metrics.map(m=>`<div class="digrow"><div class="diglbl">${m.lb}</div><div class="dignums"><span class="digval">${m.tw.toLocaleString()}</span><span style="font-size:11px;font-weight:700;color:${cc(m.tw,m.lw)};">${chg(m.tw,m.lw)} vs last week</span></div></div>`).join('')}<div style="margin-top:12px;padding:11px 14px;background:var(--surface2);border-radius:10px;font-size:11px;line-height:1.6;"><span style="font-weight:700;">Insight: </span>${insight}</div>`;
+  const insight=coldPct>=80?'Strong week -- dial volume is solid. Keep the momentum going.':coldPct>=50?'Dial volume is behind pace. Prioritize hitting your daily call target.':'Call volume is significantly off track. Dials are your most important activity -- everything downstream depends on it.';
+  document.getElementById('weekly-digest').innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})} -- ${TODAY.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>${metrics.map(m=>`<div class="digrow"><div class="diglbl">${m.lb}</div><div class="dignums"><span class="digval">${m.tw.toLocaleString()}</span><span style="font-size:11px;font-weight:700;color:${cc(m.tw,m.lw)};">${chg(m.tw,m.lw)} vs last week</span></div></div>`).join('')}<div style="margin-top:12px;padding:11px 14px;background:var(--surface2);border-radius:10px;font-size:11px;line-height:1.6;"><span style="font-weight:700;">Insight: </span>${insight}</div>`;
 }
 
 let tI=null,rI=null;
@@ -935,7 +935,7 @@ async function loadData(){
       cols.push(cur.trim());
       return cols;
     });
-    if(values.length>0){data=parseSheet(values);pill.textContent='Live data ✓';pill.className='pill pill-live';}
+    if(values.length>0){data=parseSheet(values);pill.textContent='Live data checkmark';pill.className='pill pill-live';}
     else{throw new Error('No data');}
   }catch(e){pill.textContent='Connection error';pill.className='pill pill-error';console.error('Sheet error:',e);}
   render();
