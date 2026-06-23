@@ -560,9 +560,12 @@ function renderConv(f,fS){
 }
 
 // Contacts that fell through — excluded from all pipeline value calculations
-const fellThroughIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal fell through')).map(r=>r.contact_id));
+function getFellThroughIds(){
+  return new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal fell through')).map(r=>r.contact_id));
+}
 
 function getPV(stageKey){
+  const fellThroughIds=getFellThroughIds();
   const acq=data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')&&r.stage&&r.stage.toLowerCase().includes(stageKey)&&!fellThroughIds.has(r.contact_id));
   const u=[...new Set(acq.map(r=>r.contact_id))];
   let val=0;u.forEach(cid=>{const latest=acq.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];val+=parseFloat(latest?.opp_value)||0;});
@@ -573,7 +576,7 @@ function renderPipeVal(stages){
   const acqS=[{lb:'New leads',key:'new lead'},{lb:'Attempting contact',key:'attempting'},{lb:'Follow ups',key:'follow up'},{lb:'Nurture',key:'nurture'},{lb:'Verbal offer made',key:'verbal offer'},{lb:'PA sent',key:'purchase agreement sent'},{lb:'PA signed',key:'purchase agreement sign'}];
   let total=0;
   const rows=acqS.map(s=>{const {count,val}=getPV(s.key);total+=val;return{lb:s.lb,count,val};});
-  const fellCount=fellThroughIds.size;
+  const fellCount=getFellThroughIds().size;
   document.getElementById('pipe-val').innerHTML=rows.map(r=>`<div class="prow"><span>${r.lb}</span><span><span style="font-size:10px;color:var(--text3);margin-right:10px;">${r.count} contacts</span><span style="font-weight:700;">${fmt(r.val)}</span></span></div>`).join('')+
   `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:12px;font-weight:700;border-top:1px solid var(--border);margin-top:4px;"><span>Total pipeline value</span><span>${fmt(total)}</span></div>`+
   (fellCount>0?`<div style="margin-top:8px;padding:8px 12px;background:#e24b4a15;border-radius:8px;border:1px solid #e24b4a30;font-size:11px;color:#e24b4a;">⚠️ ${fellCount} deal${fellCount!==1?'s':''} fell through — excluded from pipeline value above.</div>`:'');
