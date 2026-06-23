@@ -921,9 +921,7 @@ async function loadData(){
   const pill=document.getElementById('status-pill');
   pill.textContent='Connecting...';pill.className='pill pill-load';
   try{
-    const GID='590381830';
-    const csvUrl=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
-    const url=`https://corsproxy.io/?${encodeURIComponent(csvUrl)}`;
+    const url='https://docs.google.com/spreadsheets/d/e/2PACX-1vRAjVcMDZ-54fO73HKurJiwUDamgapNMBRkS7gg_PW0a7KVl1ZskVFXmi3YORVUt_8UcscYG31r5xvy/pub?gid=590381830&single=true&output=csv';
     const res=await fetch(url);
     if(!res.ok)throw new Error('HTTP '+res.status);
     const csv=await res.text();
