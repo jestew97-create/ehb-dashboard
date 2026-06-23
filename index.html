@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ultimate Business Intelligence Dashboard 📊📈</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f4f4f1;--surface:#fff;--surface2:#f4f4f1;--border:#e5e5e0;--border2:#d0d0cc;
+  --text:#1a1a1a;--text2:#555;--text3:#999;--topbar:#fff;--topbar-border:#e5e5e0;
+  --card-shadow:none;--input-bg:#f4f4f1;
+}
+[data-theme="dark"]{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#252525;--border:#2e2e2e;--border2:#3a3a3a;
+  --text:#f0f0f0;--text2:#aaa;--text3:#666;--topbar:#111;--topbar-border:#222;
+  --card-shadow:none;--input-bg:#252525;
+}
+*{box-sizing:border-box;margin:0;padding:0;transition:background .2s,color .2s,border-color .2s;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+.topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100;}
+.brand{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.3px;}
+.brand span{font-size:11px;font-weight:400;color:var(--text3);margin-left:8px;letter-spacing:0;}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pill{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);}
+.pill-live{background:#0f6e5620;color:#0f6e56;border-color:#0f6e5640;}
+.pill-error{background:#a32d2d20;color:#a32d2d;border-color:#a32d2d40;}
+.pill-load{background:#185fa520;color:#185fa5;border-color:#185fa540;}
+.dark-btn{padding:5px 10px;font-size:11px;cursor:pointer;border-radius:99px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);display:flex;align-items:center;gap:4px;}
+.dark-btn:hover{border-color:#185fa5;color:#185fa5;}
+.refresh-btn{padding:5px 12px;font-size:11px;cursor:pointer;border-radius:99px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);}
+.refresh-btn:hover{border-color:#185fa5;color:#185fa5;}
+.main{max-width:1100px;margin:0 auto;padding:24px 20px;}
+
+.pulse-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 20px;margin-bottom:20px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;}
+.pulse-bar strong{color:var(--text);}
+.pulse-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+.hero{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px;}
+.hc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 22px 18px;position:relative;overflow:hidden;}
+.hc-accent{position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;}
+.hc-lbl{font-size:11px;color:var(--text3);margin-bottom:8px;margin-top:2px;font-weight:500;letter-spacing:.02em;}
+.hc-val{font-size:36px;font-weight:700;line-height:1;letter-spacing:-1px;}
+.hc-sub{font-size:10px;color:var(--text3);margin-top:6px;}
+.hc-prog{height:6px;background:var(--surface2);border-radius:99px;margin-top:12px;overflow:hidden;}
+.hc-progf{height:100%;border-radius:99px;transition:width .5s;}
+.hc-pct{font-size:10px;font-weight:600;margin-top:5px;}
+
+.section-zone{background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:16px;}
+.section-zone+.section-zone{margin-top:0;}
+.zone-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+
+.rb-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.rb{padding:5px 14px;font-size:12px;border-radius:99px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .15s;}
+.rb:hover{border-color:#185fa5;color:#185fa5;}
+.rb.active{background:#185fa5;color:#fff;border-color:#185fa5;}
+.cust-row{display:none;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.cust-row input[type=date]{font-size:12px;padding:5px 9px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);}
+.cust-row button{font-size:12px;padding:5px 14px;cursor:pointer;border-radius:8px;border:1px solid #185fa5;background:#185fa5;color:#fff;}
+
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.si{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+.sb2{flex:1;min-width:0;}
+.slbl{font-size:11px;color:var(--text2);margin-bottom:2px;}
+.snums{display:flex;align-items:baseline;gap:5px;}
+.sval{font-size:22px;font-weight:700;color:var(--text);}
+.sgoal{font-size:11px;color:var(--text3);}
+.spb{height:6px;background:var(--surface2);border-radius:99px;margin-top:8px;overflow:hidden;}
+.spf{height:100%;border-radius:99px;transition:width .4s;}
+.space{font-size:9px;margin-top:4px;}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:auto;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;}
+.ct{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;letter-spacing:.01em;}
+.fr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.fl{font-size:11px;color:var(--text2);width:165px;flex-shrink:0;}
+.fw{flex:1;background:var(--surface2);border-radius:99px;height:20px;overflow:hidden;}
+.ff{height:100%;border-radius:99px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;}
+.fc2{font-size:11px;font-weight:700;color:var(--text);width:34px;text-align:right;flex-shrink:0;}
+.crow{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.crow:last-child{border-bottom:none;}
+.prow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.prow:last-child{border-bottom:none;}
+.layer{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.lhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px;}
+.ltitle{font-size:13px;font-weight:700;color:var(--text);}
+.lsub{font-size:10px;color:var(--text3);margin-top:2px;}
+.lamt{font-size:22px;font-weight:700;text-align:right;}
+.lamtsub{font-size:10px;color:var(--text3);text-align:right;}
+.lrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.lrow:last-child{border-bottom:none;}
+.hlrow{background:var(--surface2);border-radius:8px;padding:8px 11px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:11px;}
+.blended{background:var(--surface2);border-radius:12px;padding:18px 20px;margin-top:4px;}
+.bnum{font-size:34px;font-weight:700;letter-spacing:-1px;}
+.bsub{font-size:11px;color:var(--text2);margin-top:4px;}
+.bbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+.bbtile{background:var(--surface);border-radius:10px;padding:12px 14px;border:1px solid var(--border);}
+.rr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.rr label{font-size:11px;color:var(--text2);flex:1;}
+.rr input{width:75px;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);text-align:right;}
+.rr span{font-size:11px;color:var(--text3);}
+.er{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.er label{font-size:11px;color:var(--text2);width:170px;flex-shrink:0;}
+.er input{flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);}
+.ctile{background:var(--surface2);border-radius:10px;padding:11px 13px;}
+.ctl{font-size:10px;color:var(--text3);margin-bottom:3px;}
+.ctv{font-size:18px;font-weight:700;color:var(--text);}
+.cts{font-size:10px;color:var(--text3);margin-top:2px;}
+.crgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.calcgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px;}
+.gg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.gf{display:flex;flex-direction:column;gap:4px;}
+.gf label{font-size:11px;color:var(--text2);}
+.gf input{font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);}
+.digrow{padding:9px 0;border-bottom:1px solid var(--border);}
+.digrow:last-child{border-bottom:none;}
+.diglbl{font-size:10px;color:var(--text3);margin-bottom:3px;}
+.dignums{display:flex;justify-content:space-between;align-items:center;}
+.digval{font-size:15px;font-weight:700;}
+.note{font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-sq{width:10px;height:10px;border-radius:2px;}
+.roi-bar{padding:14px 16px;border-left:3px solid #1d9e75;background:var(--surface2);border-radius:0 8px 8px 0;margin-top:14px;}
+.qp-inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.qp-field{display:flex;flex-direction:column;gap:4px;}
+.qp-field label{font-size:11px;color:var(--text2);}
+.qp-field input{font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);}
+.qp-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.qp-tab{padding:5px 14px;font-size:12px;border-radius:99px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .15s;}
+.qp-tab.active{background:#185fa5;color:#fff;border-color:#185fa5;}
+.qp-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
+.qp-table th{text-align:right;padding:8px 10px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);border-bottom:2px solid var(--border);}
+.qp-table th:first-child{text-align:left;width:38%;}
+.qp-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);text-align:right;}
+.qp-table tr:last-child td{border-bottom:none;}
+.qp-table .row-label{color:var(--text2);font-weight:400;text-align:left;}
+.qp-highlight{background:var(--surface2);border-radius:10px;padding:14px 16px;margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.qp-stat{text-align:center;}
+.qp-stat-val{font-size:22px;font-weight:700;color:var(--text);}
+.qp-stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;}
+.qp-stat-sub{font-size:10px;color:#185fa5;font-weight:600;margin-top:2px;}
+.proj-note{font-size:10px;color:var(--text3);margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;line-height:1.6;}
+@media(max-width:700px){.qp-inputs{grid-template-columns:repeat(2,1fr);}.qp-highlight{grid-template-columns:repeat(2,1fr);}}
+.jumpnav{background:var(--topbar);border-bottom:1px solid var(--topbar-border);padding:0 24px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.jumpnav::-webkit-scrollbar{display:none;}
+.jumpnav a{font-size:12px;color:var(--text3);padding:10px 14px;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.jumpnav a:hover{color:#185fa5;border-bottom-color:#185fa5;}
+.save-btn{margin-top:14px;padding:8px 18px;font-size:12px;cursor:pointer;border-radius:8px;border:1px solid #185fa5;background:#185fa5;color:#fff;font-weight:600;}
+.save-btn:hover{background:#0c447c;}
+@media(max-width:700px){
+  .hero{grid-template-columns:repeat(2,1fr);}
+  .sg{grid-template-columns:1fr;}
+  .bbgrid{grid-template-columns:1fr;}
+  .crgrid{grid-template-columns:repeat(2,1fr);}
+  .gg{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Ultimate Business Intelligence Dashboard 📊📈</div>
+  <div class="topbar-right">
+    <button class="dark-btn" onclick="toggleDark()">🌙 <span id="dark-label">Dark</span></button>
+    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>
+    <div class="pill pill-load" id="date-out">Loading...</div>
+    <div class="pill pill-load" id="status-pill">Connecting...</div>
+  </div>
+</div>
+
+<div class="jumpnav">
+  <a href="#zone-activity">Activity</a>
+  <a href="#zone-pipeline">Pipeline</a>
+  <a href="#zone-funnel">Funnel</a>
+  <a href="#zone-revenue">Revenue</a>
+  <a href="#zone-calls">Calls</a>
+  <a href="#zone-financials">Financials</a>
+  <a href="#zone-digest">Digest</a>
+  <a href="#zone-quarterly">Quarterly</a>
+  <a href="#zone-settings">Settings</a>
+</div>
+
+<div class="main">
+
+<div id="hero" class="hero"></div>
+<div id="pulse-bar" class="pulse-bar"></div>
+
+<div class="rb-bar">
+  <button class="rb active" onclick="setRange('today',this)">Today</button>
+  <button class="rb" onclick="setRange('week',this)">This week</button>
+  <button class="rb" onclick="setRange('month',this)">This month</button>
+  <button class="rb" onclick="setRange('30',this)">Last 30d</button>
+  <button class="rb" onclick="setRange('60',this)">Last 60d</button>
+  <button class="rb" onclick="setRange('90',this)">Last 90d</button>
+  <button class="rb" onclick="setRange('custom',this)">Custom</button>
+</div>
+<div class="cust-row" id="cust-row">
+  <input type="date" id="c-start"/>
+  <span style="font-size:11px;color:var(--text3);">to</span>
+  <input type="date" id="c-end"/>
+  <button onclick="applyCustom()">Apply</button>
+</div>
+
+<div class="section-zone" id="zone-activity">
+  <div class="zone-label">Activity scoreboard</div>
+  <div id="score-grid" class="sg"></div>
+</div>
+
+<div class="section-zone" id="zone-pipeline">
+  <div class="zone-label">Pipeline</div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">🏠 Pipeline value by stage</div>
+    <div id="pipe-val"></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-funnel">
+  <div class="zone-label">Funnel & conversion</div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="ct">📊 Acquisition funnel</div>
+    <div id="funnel"></div>
+  </div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">→ Conversion rates</div>
+    <div id="conv"></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-revenue">
+  <div class="zone-label">Revenue intelligence</div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="ct">🔮 Revenue forecast — 3-layer pipeline analysis</div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;">Conversion rates — edit anytime</div>
+      <div class="rr"><label>Active leads → verbal offer rate</label><input id="r-lead" type="number" value="10" step="0.1" oninput="renderForecast()"/><span>%</span></div>
+      <div class="rr"><label>Verbal offer → contract rate</label><input id="r-offer" type="number" value="5.5" step="0.1" oninput="renderForecast()"/><span>%</span></div>
+      <div class="rr"><label>Contract → closed deal rate</label><input id="r-contract" type="number" value="25" step="1" oninput="renderForecast()"/><span>%</span></div>
+      <div class="rr"><label>Avg deal value ($)</label><input id="r-dealval" type="number" value="12000" oninput="renderForecast()"/><span></span></div>
+    </div>
+    <div id="forecast-layers"></div>
+  </div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="ct">⏱ Deal velocity</div>
+    <div id="deal-vel"></div>
+  </div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">💰 Revenue vs goal — 6 months</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-sq" style="background:#378ADD;"></span>Revenue</span>
+      <span class="legend-item"><span class="legend-sq" style="border:2px dashed #E24B4A;background:transparent;"></span>Monthly goal</span>
+    </div>
+    <div style="position:relative;width:100%;height:200px;"><canvas id="revChart" role="img" aria-label="Monthly revenue vs goal">Revenue chart</canvas></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-calls">
+  <div class="zone-label">Call activity</div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="ct">📞 Call breakdown — warm vs cold</div>
+    <div id="call-breakdown"></div>
+  </div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">📈 90-day activity trend</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-sq" style="background:#378ADD;"></span>Cold calls</span>
+      <span class="legend-item"><span class="legend-sq" style="border:2px dashed #1D9E75;background:transparent;"></span>Warm calls</span>
+      <span style="font-size:10px;color:var(--text3);margin-left:4px;">(Contacts removed — bulk imports distort scale)</span>
+    </div>
+    <div style="position:relative;width:100%;height:220px;"><canvas id="trendChart" role="img" aria-label="90 day activity trend">90 day trend</canvas></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-financials">
+  <div class="zone-label">Financials</div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="ct">🧾 Monthly expenses & ROI</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Enter your monthly costs — cost-per-lead, cost-per-deal, and ROI calculate automatically.</div>
+    <div class="er"><label>List / data purchasing ($)</label><input id="e-list" type="number" value="0" oninput="calcCosts()"/></div>
+    <div class="er"><label>Dialer / software ($)</label><input id="e-dialer" type="number" value="0" oninput="calcCosts()"/></div>
+    <div class="er"><label>Marketing / mailers ($)</label><input id="e-marketing" type="number" value="0" oninput="calcCosts()"/></div>
+    <div class="er"><label>VA / labor ($)</label><input id="e-labor" type="number" value="0" oninput="calcCosts()"/></div>
+    <div class="er"><label>Other expenses ($)</label><input id="e-other" type="number" value="0" oninput="calcCosts()"/></div>
+    <div id="cost-results"></div>
+  </div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">🧮 Goal projection calculator</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Enter a revenue target — get the exact daily dials, leads, and offers you need.</div>
+    <div class="er"><label>Revenue goal ($)</label><input id="calc-rev" type="number" value="12000" oninput="calcGoals()"/></div>
+    <div class="er"><label>Avg deal value ($)</label><input id="calc-deal" type="number" value="12000" oninput="calcGoals()"/></div>
+    <div class="er"><label>Verbal offer → close rate (%)</label><input id="calc-rate" type="number" value="5.5" step="0.1" oninput="calcGoals()"/></div>
+    <div id="calc-result"></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-digest">
+  <div class="zone-label">Weekly digest</div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">📅 Week over week</div>
+    <div id="weekly-digest"></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-quarterly">
+  <div class="zone-label">Quarterly planning</div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">📅 Revenue goal reverse-engineer</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;">Enter your targets — get the exact number of deals, offers, and leads needed across every time horizon.</div>
+
+    <div class="qp-inputs">
+      <div class="qp-field"><label>Quarterly revenue goal ($)</label><input id="qp-rev" type="number" value="36000" oninput="renderQP()"/></div>
+      <div class="qp-field"><label>Avg deal size ($)</label><input id="qp-deal" type="number" value="12000" oninput="renderQP()"/></div>
+      <div class="qp-field"><label>Success / close rate (%)</label><input id="qp-success" type="number" value="65" step="1" oninput="renderQP()"/></div>
+      <div class="qp-field"><label>Offers → contract rate (%)</label><input id="qp-offer-rate" type="number" value="5.5" step="0.1" oninput="renderQP()"/></div>
+      <div class="qp-field"><label>Leads → offer rate (%)</label><input id="qp-lead-rate" type="number" value="10" step="0.1" oninput="renderQP()"/></div>
+      <div class="qp-field"><label>Dials → lead rate (%)</label><input id="qp-dial-rate" type="number" value="0.5" step="0.1" oninput="renderQP()"/></div>
+      <div class="qp-field"><label>Warm follow-up dials / day goal</label><input id="qp-warm" type="number" value="35" step="1" oninput="renderQP()"/></div>
+    </div>
+
+    <div class="qp-tabs">
+      <button class="qp-tab active" onclick="qpTab('quarterly',this)">Quarterly</button>
+      <button class="qp-tab" onclick="qpTab('monthly',this)">Monthly</button>
+      <button class="qp-tab" onclick="qpTab('weekly',this)">Weekly</button>
+      <button class="qp-tab" onclick="qpTab('daily',this)">Daily</button>
+    </div>
+
+    <div id="qp-table-wrap"></div>
+    <div id="qp-highlight"></div>
+    <div class="proj-note" id="qp-note"></div>
+  </div>
+</div>
+
+<div class="section-zone" id="zone-settings">
+  <div class="zone-label">Settings</div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="ct">🎯 Goals — edit anytime</div>
+    <div class="gg">
+      <div class="gf"><label>Cold calls / day</label><input id="g-cold" type="number" value="500"/></div>
+      <div class="gf"><label>Follow-up calls / day</label><input id="g-fu" type="number" value="35"/></div>
+      <div class="gf"><label>New contacts / month</label><input id="g-contacts" type="number" value="10000"/></div>
+      <div class="gf"><label>Verbal offers / week</label><input id="g-offers" type="number" value="18"/></div>
+      <div class="gf"><label>Deals / month</label><input id="g-deals" type="number" value="1"/></div>
+      <div class="gf"><label>Revenue / month ($)</label><input id="g-rev" type="number" value="12000"/></div>
+    </div>
+    <button class="save-btn" onclick="saveGoals()">Save goals</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const SHEET_ID='1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY';
+const API_KEY='AIzaSyDGqOO4Ta1KGeGQC58IU_EDGheze0I45KE';
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+
+let goals={cold:500,fu:35,contacts:10000,offers:18,deals:1,rev:12000};
+let expenses={list:0,dialer:0,marketing:0,labor:0,other:0};
+let data=[];
+let rangeMode='today';
+let customStart=null,customEnd=null;
+
+function fmt(n){if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+(n/1000).toFixed(0)+'K';return'$'+n.toLocaleString();}
+function fmtN(n){if(n>=1000)return(n/1000).toFixed(0)+'K';return n.toLocaleString();}
+
+function toggleDark(){
+  const el=document.documentElement;
+  const isDark=el.getAttribute('data-theme')==='dark';
+  el.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('dark-label').textContent=isDark?'Dark':'Light';
+  localStorage.setItem('ehb_dark',isDark?'0':'1');
+  if(data.length)renderTrend(),renderRev();
+}
+
+function loadSaved(){
+  if(localStorage.getItem('ehb_dark')==='1'){document.documentElement.setAttribute('data-theme','dark');document.getElementById('dark-label').textContent='Light';}
+  const g=localStorage.getItem('ehb_live_goals');if(g)goals=JSON.parse(g);
+  const e=localStorage.getItem('ehb_live_exp');if(e)expenses=JSON.parse(e);
+  document.getElementById('g-cold').value=goals.cold;
+  document.getElementById('g-fu').value=goals.fu;
+  document.getElementById('g-contacts').value=goals.contacts;
+  document.getElementById('g-offers').value=goals.offers;
+  document.getElementById('g-deals').value=goals.deals;
+  document.getElementById('g-rev').value=goals.rev;
+  document.getElementById('e-list').value=expenses.list;
+  document.getElementById('e-dialer').value=expenses.dialer;
+  document.getElementById('e-marketing').value=expenses.marketing;
+  document.getElementById('e-labor').value=expenses.labor;
+  document.getElementById('e-other').value=expenses.other;
+  document.getElementById('r-lead').value=localStorage.getItem('r-lead')||10;
+  document.getElementById('r-offer').value=localStorage.getItem('r-offer')||5.5;
+  document.getElementById('r-contract').value=localStorage.getItem('r-contract')||25;
+  document.getElementById('r-dealval').value=localStorage.getItem('r-dealval')||12000;
+}
+
+function saveGoals(){
+  goals={cold:+document.getElementById('g-cold').value||500,fu:+document.getElementById('g-fu').value||35,contacts:+document.getElementById('g-contacts').value||10000,offers:+document.getElementById('g-offers').value||18,deals:+document.getElementById('g-deals').value||1,rev:+document.getElementById('g-rev').value||12000};
+  localStorage.setItem('ehb_live_goals',JSON.stringify(goals));
+  localStorage.setItem('r-lead',document.getElementById('r-lead').value);
+  localStorage.setItem('r-offer',document.getElementById('r-offer').value);
+  localStorage.setItem('r-contract',document.getElementById('r-contract').value);
+  localStorage.setItem('r-dealval',document.getElementById('r-dealval').value);
+  render();alert('Goals saved!');
+}
+
+function setRange(mode,el){
+  rangeMode=mode;
+  document.querySelectorAll('.rb').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cust-row').style.display=mode==='custom'?'flex':'none';
+  if(mode!=='custom')render();
+}
+
+function applyCustom(){
+  customStart=new Date(document.getElementById('c-start').value);
+  customEnd=new Date(document.getElementById('c-end').value);
+  render();
+}
+
+function getRange(){
+  const today=new Date(TODAY);
+  if(rangeMode==='today')return{start:new Date(today),end:today,workDays:1,monthF:1/22,weekF:1/5,contG:Math.round(goals.contacts/30)};
+  if(rangeMode==='week'){const s=new Date(today);s.setDate(today.getDate()-((today.getDay()+6)%7));return{start:s,end:today,workDays:5,monthF:1/4,weekF:1,contG:Math.round(goals.contacts/4)};}
+  if(rangeMode==='month'){const s=new Date(today.getFullYear(),today.getMonth(),1);return{start:s,end:today,workDays:22,monthF:1,weekF:4,contG:goals.contacts};}
+  if(rangeMode==='30'){const s=new Date(today);s.setDate(today.getDate()-30);return{start:s,end:today,workDays:22,monthF:1,weekF:4,contG:goals.contacts};}
+  if(rangeMode==='60'){const s=new Date(today);s.setDate(today.getDate()-60);return{start:s,end:today,workDays:44,monthF:2,weekF:8,contG:goals.contacts*2};}
+  if(rangeMode==='90'){const s=new Date(today);s.setDate(today.getDate()-90);return{start:s,end:today,workDays:66,monthF:3,weekF:12,contG:goals.contacts*3};}
+  if(rangeMode==='custom'&&customStart&&customEnd){const days=Math.ceil((customEnd-customStart)/864e5);return{start:customStart,end:customEnd,workDays:Math.round(days*5/7),monthF:days/30,weekF:days/7,contG:Math.round(goals.contacts*(days/30))};}
+  return{start:new Date(today),end:today,workDays:1,monthF:1/22,weekF:1/5,contG:Math.round(goals.contacts/30)};
+}
+
+function inR(r,s,e){const d=new Date(r.timestamp);return d>=s&&d<=new Date(e.getTime()+864e5);}
+function pcc(p){return p>=80?'#1d9e75':p>=50?'#ba7517':'#e24b4a';}
+function bcls(p){return p>=80?'pill-live':p>=50?'':'pill-error';}
+
+function hc(lb,val,sub,pct,accent){
+  const color=pct!==''?pcc(pct):'var(--text)';
+  const progW=pct!==''?Math.min(100,pct):0;
+  const progColor=pct!==''?pcc(pct):'#185fa5';
+  return`<div class="hc"><div class="hc-accent" style="background:${accent};"></div><div class="hc-lbl">${lb}</div><div class="hc-val" style="color:${color};">${val}</div><div class="hc-sub">${sub}</div><div class="hc-prog"><div class="hc-progf" style="width:${progW}%;background:${progColor};"></div></div>${pct!==''?`<div class="hc-pct" style="color:${progColor};">${pct}% of goal</div>`:''}</div>`;
+}
+
+function scoreCard(icon,lb,v,g,pace,ibg){
+  const p=Math.min(100,Math.round((v/Math.max(g,1))*100));
+  const fc=pcc(p);
+  return`<div class="sc"><div class="si" style="background:${ibg};font-size:16px;">${icon}</div><div class="sb2"><div class="slbl">${lb}</div><div class="snums"><span class="sval">${fmtN(v)}</span><span class="sgoal">/ ${fmtN(g)}</span><span class="sdot" style="background:${fc};"></span></div><div class="spb"><div class="spf" style="width:${p}%;background:${fc};"></div></div>${pace?`<div class="space" style="color:${fc};">${pace}</div>`:''}</div></div>`;
+}
+
+function render(){
+  const {start,end,workDays,monthF,weekF,contG}=getRange();
+  const f=data.filter(r=>inR(r,start,end));
+  const allS=data.filter(r=>r.type==='stage_change');
+  const fS=f.filter(r=>r.type==='stage_change');
+  const cold=f.filter(r=>r.type==='cold_call').length;
+  const fu=f.filter(r=>r.type==='follow_up_call').length;
+  const contacts=f.filter(r=>r.type==='contact_created').length;
+
+  // Deduplicate all stage-based metrics by contact ID — each contact counts once max
+  function uniqueStageCount(rows,keyword){
+    return new Set(rows.filter(r=>r.stage&&r.stage.toLowerCase().includes(keyword)).map(r=>r.contact_id)).size;
+  }
+  const newLeads=uniqueStageCount(fS,'new lead');
+  const verbal=uniqueStageCount(fS,'verbal offer');
+  const paSent=uniqueStageCount(fS,'purchase agreement sent');
+
+  // Deals closed = unique contacts that reached Contracts Sent to Title in Disposition pipeline
+  const closedRows=f.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed'));
+  const closedIds=[...new Set(closedRows.map(r=>r.contact_id))];
+  const dealsClosedCount=closedIds.length;
+
+  // Revenue = sum of latest opp_value per unique closed contact
+  const rev=closedIds.reduce((s,cid)=>{const latest=closedRows.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return s+(parseFloat(latest?.opp_value)||0);},0);
+
+  const coldG=Math.round(goals.cold*workDays);
+  const fuG=Math.round(goals.fu*workDays);
+  const offerG=Math.round(goals.offers*weekF);
+  // New leads goal = ~10% of contacts goal (1 in 10 contacts becomes a lead)
+  const newLeadG=Math.max(1,Math.round(contG*0.1));
+  const dealG=Math.max(1,Math.round(goals.deals*monthF));
+  const revG=Math.round(goals.rev*monthF);
+  const dEl=Math.max(1,Math.ceil((TODAY-start)/864e5));
+  const dTot=Math.max(1,Math.ceil((end-start)/864e5)+1);
+  function pm(v,g){const p=Math.round((v/dEl)*dTot);const pct=Math.round((p/Math.max(g,1))*100);return`Pace: ${fmtN(p)} (${pct}%)`;}
+  const revPct=Math.min(100,Math.round((rev/Math.max(revG,1))*100));
+  const verbalPct=Math.min(100,Math.round((verbal/Math.max(offerG,1))*100));
+  const dealPct=Math.min(100,Math.round((dealsClosedCount/Math.max(dealG,1))*100));
+
+  document.getElementById('hero').innerHTML=
+    hc('Revenue',fmt(rev),'Goal: '+fmt(revG),revPct,'#185fa5')+
+    hc('Offers made',verbal,'Goal: '+offerG,verbalPct,'#7f77dd')+
+    hc('PAs sent',paSent,'Unique contacts in range','','#d85a30')+
+    hc('Deals closed',dealsClosedCount,'Goal: '+dealG,dealPct,'#1d9e75');
+
+  const acqContactIds=new Set(allS.filter(r=>r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
+  const warmTotal=f.filter(r=>(r.type==='follow_up_call'||r.type==='cold_call')&&acqContactIds.has(r.contact_id)).length;
+  const trueCold=f.filter(r=>r.type==='cold_call'&&!acqContactIds.has(r.contact_id)).length;
+
+  const coldPct=Math.round((cold/Math.max(coldG,1))*100);
+  const pb=document.getElementById('pulse-bar');
+
+  // Pipeline value — use getPV deduplication logic (sum latest opp_value per unique contact per stage)
+  const pipeStages=['new lead','attempting','follow up','nurture','verbal offer','purchase agreement sent','purchase agreement sign'];
+  const seenPipe=new Set();
+  let pipeVal=0;
+  pipeStages.forEach(key=>{
+    const acqRows=data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')&&r.stage&&r.stage.toLowerCase().includes(key));
+    acqRows.forEach(r=>{if(!seenPipe.has(r.contact_id)){seenPipe.add(r.contact_id);const latest=acqRows.filter(x=>x.contact_id===r.contact_id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];pipeVal+=parseFloat(latest?.opp_value)||0;}});
+  });
+
+  const statusColor=coldPct>=80?'#1d9e75':coldPct>=50?'#ba7517':'#e24b4a';
+  pb.innerHTML=`<div class="pulse-dot" style="background:${statusColor};"></div><span>You have <strong>${fmt(pipeVal)}</strong> in active pipeline, <strong>${verbal}</strong> verbal offer${verbal!==1?'s':''} out, and <strong>${paSent}</strong> PA${paSent!==1?'s':''} sent. Cold calls today: <strong style="color:${statusColor};">${cold} / ${coldG}</strong> (${coldPct}% of goal).</span>`;
+
+  document.getElementById('score-grid').innerHTML=[
+    {icon:'📞',lb:'Cold calls',v:cold,g:coldG,ibg:'#185fa520',pace:pm(cold,coldG)},
+    {icon:'🔥',lb:'Warm calls',v:warmTotal,g:fuG,ibg:'#1d9e7520',pace:pm(warmTotal,fuG)},
+    {icon:'👤',lb:'New contacts',v:contacts,g:contG,ibg:'#ba751720',pace:'Monthly goal: '+fmtN(goals.contacts)},
+    {icon:'🏠',lb:'New leads',v:newLeads,g:newLeadG,ibg:'#7f77dd20',pace:'~10% of contacts'},
+    {icon:'💬',lb:'Verbal offers',v:verbal,g:offerG,ibg:'#d85a3020',pace:''},
+    {icon:'📄',lb:'PAs sent',v:paSent,g:Math.max(1,Math.round(offerG*0.055)),ibg:'#639922'+'20',pace:''},
+    {icon:'✅',lb:'Deals closed',v:dealsClosedCount,g:dealG,ibg:'#1d9e7520',pace:''},
+    {icon:'💵',lb:'Revenue',v:rev,g:revG,ibg:'#185fa520',pace:''},
+  ].map(x=>scoreCard(x.icon,x.lb,x.v,x.g,x.pace,x.ibg)).join('');
+
+  renderFunnel(fS);renderConv(f,fS);renderPipeVal(allS);renderForecast();renderDealVel(allS);renderCallBreakdown(f,acqContactIds,workDays);calcCosts();renderDigest();renderTrend();renderRev();calcGoals();
+}
+
+function renderFunnel(stages){
+  function uCount(key){return new Set(stages.filter(r=>r.stage&&r.stage.toLowerCase().includes(key)).map(r=>r.contact_id)).size;}
+  const items=[
+    {lb:'Contacts added',cnt:data.filter(r=>r.type==='contact_created').length,col:'#378add'},
+    {lb:'New leads (cold caller)',cnt:uCount('new lead'),col:'#1d9e75'},
+    {lb:'Appointments (SMS bot)',cnt:uCount('appointment'),col:'#639922'},
+    {lb:'Attempting contact',cnt:uCount('attempting'),col:'#ba7517'},
+    {lb:'Follow ups',cnt:uCount('follow up'),col:'#7f77dd'},
+    {lb:'Nurture',cnt:uCount('nurture'),col:'#d4537e'},
+    {lb:'Verbal offer made',cnt:uCount('verbal offer'),col:'#ef9f27'},
+    {lb:'PA sent',cnt:uCount('purchase agreement sent'),col:'#d85a30'},
+    {lb:'PA signed / deal',cnt:uCount('purchase agreement sign'),col:'#1d9e75'},
+  ];
+  const max=Math.max(...items.map(i=>i.cnt),1);
+  document.getElementById('funnel').innerHTML=items.map(i=>`<div class="fr"><div class="fl">${i.lb}</div><div class="fw"><div class="ff" style="width:${Math.max(3,Math.round((i.cnt/max)*100))}%;background:${i.col};">${i.cnt>0?i.cnt:''}</div></div><div class="fc2">${i.cnt}</div></div>`).join('');
+}
+
+function renderConv(f,fS){
+  function uCount(rows,key){return new Set(rows.filter(r=>r.stage&&r.stage.toLowerCase().includes(key)).map(r=>r.contact_id)).size;}
+  const dials=Math.max(f.filter(r=>r.type==='cold_call').length,1);
+  const contacts=Math.max(f.filter(r=>r.type==='contact_created').length,1);
+  const nl=Math.max(uCount(fS,'new lead'),1);
+  const verbal=Math.max(uCount(fS,'verbal offer'),1);
+  const paSent=Math.max(uCount(fS,'purchase agreement sent'),1);
+  const closed=new Set(f.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed')).map(r=>r.contact_id)).size;
+  function rt(a,b){return b<=0?'—':(Math.round((a/b)*1000)/10)+'%';}
+  document.getElementById('conv').innerHTML=[
+    ['Contacts added','New leads',rt(nl,contacts)],
+    ['Cold calls (dials)','New leads',rt(nl,dials)],
+    ['New leads','Verbal offer',rt(verbal,nl)],
+    ['Verbal offer','PA sent',rt(paSent,verbal)],
+    ['PA sent','Deal closed',rt(closed,paSent)],
+  ].map(([from,to,rate])=>`<div class="crow"><span style="color:var(--text2);">${from}</span><span style="color:var(--text3);font-size:10px;">→</span><span style="color:var(--text2);">${to}</span><span style="flex:1;"></span><span style="font-weight:700;">${rate}</span></div>`).join('');
+}
+
+// Contacts that fell through — excluded from all pipeline value calculations
+const fellThroughIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal fell through')).map(r=>r.contact_id));
+
+function getPV(stageKey){
+  const acq=data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')&&r.stage&&r.stage.toLowerCase().includes(stageKey)&&!fellThroughIds.has(r.contact_id));
+  const u=[...new Set(acq.map(r=>r.contact_id))];
+  let val=0;u.forEach(cid=>{const latest=acq.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];val+=parseFloat(latest?.opp_value)||0;});
+  return{count:u.length,val};
+}
+
+function renderPipeVal(stages){
+  const acqS=[{lb:'New leads',key:'new lead'},{lb:'Attempting contact',key:'attempting'},{lb:'Follow ups',key:'follow up'},{lb:'Nurture',key:'nurture'},{lb:'Verbal offer made',key:'verbal offer'},{lb:'PA sent',key:'purchase agreement sent'},{lb:'PA signed',key:'purchase agreement sign'}];
+  let total=0;
+  const rows=acqS.map(s=>{const {count,val}=getPV(s.key);total+=val;return{lb:s.lb,count,val};});
+  const fellCount=fellThroughIds.size;
+  document.getElementById('pipe-val').innerHTML=rows.map(r=>`<div class="prow"><span>${r.lb}</span><span><span style="font-size:10px;color:var(--text3);margin-right:10px;">${r.count} contacts</span><span style="font-weight:700;">${fmt(r.val)}</span></span></div>`).join('')+
+  `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:12px;font-weight:700;border-top:1px solid var(--border);margin-top:4px;"><span>Total pipeline value</span><span>${fmt(total)}</span></div>`+
+  (fellCount>0?`<div style="margin-top:8px;padding:8px 12px;background:#e24b4a15;border-radius:8px;border:1px solid #e24b4a30;font-size:11px;color:#e24b4a;">⚠️ ${fellCount} deal${fellCount!==1?'s':''} fell through — excluded from pipeline value above.</div>`:'');
+}
+
+function renderForecast(){
+  const lr=+document.getElementById('r-lead').value/100||0.1;
+  const or2=+document.getElementById('r-offer').value/100||0.055;
+  const cr=+document.getElementById('r-contract').value/100||0.25;
+  const l1S=[{lb:'New leads',key:'new lead',hl:false},{lb:'Appointments',key:'appointment',hl:false},{lb:'Follow ups',key:'follow up',hl:true},{lb:'Attempting contact',key:'attempting',hl:false},{lb:'Nurture',key:'nurture',hl:false}];
+  let l1=0,l1r='';
+  l1S.forEach(s=>{const {count,val}=getPV(s.key);const proj=Math.round(val*lr*or2*cr);l1+=proj;
+    if(s.hl){l1r+=`<div class="hlrow"><span style="font-weight:700;">⭐ ${s.lb} — primary source</span><span><span style="font-size:10px;color:var(--text3);margin-right:8px;">${count} contacts · ${fmt(val)}</span><span style="font-weight:700;color:#185fa5;">→ ${fmt(proj)}</span></span></div>`;}
+    else{l1r+=`<div class="lrow"><span style="color:var(--text2);">${s.lb} <span style="font-size:10px;color:var(--text3);">(${count} · ${fmt(val)})</span></span><span style="font-weight:700;">→ ${fmt(proj)}</span></div>`;}
+  });
+  const {count:vC,val:vV}=getPV('verbal offer');
+  const l2=Math.round(vV*or2*cr);
+  const l3S=[{lb:'PA sent',key:'purchase agreement sent'},{lb:'PA signed',key:'purchase agreement sign'},{lb:'Contracts sent to title',key:'contracts sent'},{lb:'Deal closed',key:'deal closed'}];
+  let l3=0,l3r='';
+  l3S.forEach(s=>{const {count,val}=getPV(s.key);const proj=Math.round(val*cr);l3+=proj;l3r+=`<div class="lrow"><span style="color:var(--text2);">${s.lb} <span style="font-size:10px;color:var(--text3);">(${count} · ${fmt(val)})</span></span><span style="font-weight:700;color:#1d9e75;">→ ${fmt(proj)}</span></div>`;});
+  const blended=l1+l2+l3;const bpct=Math.round((blended/Math.max(goals.rev,1))*100);const bcol=pcc(Math.min(100,bpct));
+  document.getElementById('forecast-layers').innerHTML=`
+    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 1 — Pre-offer leads</div><div class="lsub">Not yet offered · ${(lr*100).toFixed(0)}% offer → ${(or2*100).toFixed(1)}% contract → ${(cr*100).toFixed(0)}% close</div></div><div><div class="lamt" style="color:#378add;">${fmt(l1)}</div><div class="lamtsub">projected</div></div></div>${l1r}<div class="note">Certainty: Low — Follow Ups is your biggest opportunity.</div></div>
+    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 2 — Verbal offers made</div><div class="lsub">Already offered · ${(or2*100).toFixed(1)}% → contract → ${(cr*100).toFixed(0)}% → close</div></div><div><div class="lamt" style="color:#ba7517;">${fmt(l2)}</div><div class="lamtsub">projected</div></div></div><div class="lrow"><span style="color:var(--text2);">Verbal offer made <span style="font-size:10px;color:var(--text3);">(${vC} contacts · ${fmt(vV)})</span></span><span style="font-weight:700;">→ ${fmt(l2)}</span></div><div class="note">Certainty: Medium — offer made, waiting on seller decision.</div></div>
+    <div class="layer"><div class="lhdr"><div><div class="ltitle">Layer 3 — Under contract</div><div class="lsub">PA signed & beyond · ${(cr*100).toFixed(0)}% close rate</div></div><div><div class="lamt" style="color:#1d9e75;">${fmt(l3)}</div><div class="lamtsub">projected</div></div></div>${l3r}<div class="note">Certainty: High — contract signed, most certain upcoming revenue.</div></div>
+    <div class="blended"><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Total blended forecast</div><div class="bnum" style="color:${bcol};">${fmt(blended)}</div><div class="bsub">${bpct}% of ${fmt(goals.rev)} monthly goal</div>
+    <div class="bbgrid">
+      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 1 — pre-offer</div><div style="font-size:16px;font-weight:700;">${fmt(l1)}</div><div style="font-size:9px;color:var(--text3);">Low certainty</div><div style="height:4px;background:#378add;border-radius:99px;margin-top:6px;width:25%;"></div></div>
+      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 2 — verbal offer</div><div style="font-size:16px;font-weight:700;">${fmt(l2)}</div><div style="font-size:9px;color:var(--text3);">Medium certainty</div><div style="height:4px;background:#ba7517;border-radius:99px;margin-top:6px;width:55%;"></div></div>
+      <div class="bbtile"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Layer 3 — under contract</div><div style="font-size:16px;font-weight:700;">${fmt(l3)}</div><div style="font-size:9px;color:var(--text3);">High certainty</div><div style="height:4px;background:#1d9e75;border-radius:99px;margin-top:6px;width:85%;"></div></div>
+    </div></div>
+    <div class="note" style="margin-top:10px;">All projections use your estimated conversion rates. Auto-calibrates as real data accumulates.</div>`;
+}
+
+function renderDealVel(stages){
+  const closed=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed')).map(r=>r.contact_id)).size;
+  const inPipe=stages.filter(r=>r.stage&&(r.stage.toLowerCase().includes('verbal offer')||r.stage.toLowerCase().includes('purchase agreement sent')));
+  const uniqueInPipe=[...new Set(inPipe.map(r=>r.contact_id))];
+  const oldest=uniqueInPipe.length>0?Math.max(...uniqueInPipe.map(cid=>{const latest=inPipe.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return Math.ceil((TODAY-new Date(latest.timestamp))/864e5);})):0;
+
+  // PA Sent stale alert — contacts sitting in Purchase Agreement Sent for 14+ days
+  const paSentRows=stages.filter(r=>r.stage&&r.stage.toLowerCase().includes('purchase agreement sent'));
+  const paSentIds=[...new Set(paSentRows.map(r=>r.contact_id))];
+  const stalePA=paSentIds.filter(cid=>{
+    const latest=paSentRows.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
+    return Math.ceil((TODAY-new Date(latest.timestamp))/864e5)>=14;
+  });
+  const staleAlert=stalePA.length>0
+    ?`<div style="margin-top:10px;padding:10px 13px;background:#ba751720;border-radius:8px;border:1px solid #ba751740;font-size:11px;color:#ba7517;line-height:1.6;">⏰ <strong>${stalePA.length} contact${stalePA.length!==1?'s':''}</strong> have been sitting in <strong>Purchase Agreement Sent</strong> for 14+ days without signing. Follow up — these deals are going cold.</div>`
+    :'';
+
+  // Missing opp value warning
+  const allAcqIds=new Set(stages.filter(r=>r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
+  const missingVal=[...allAcqIds].filter(cid=>{const rows=stages.filter(r=>r.contact_id===cid&&r.pipeline&&r.pipeline.includes('Acquisitions'));const latest=rows.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return !latest||!(parseFloat(latest.opp_value)>0);});
+  const missingAlert=missingVal.length>0
+    ?`<div style="margin-top:8px;padding:10px 13px;background:#185fa515;border-radius:8px;border:1px solid #185fa530;font-size:11px;color:#185fa5;line-height:1.6;">📋 <strong>${missingVal.length} contact${missingVal.length!==1?'s':''}</strong> in your Acquisitions pipeline have no opportunity value set. Update these in OfferBolt so your pipeline value and forecast are accurate.</div>`
+    :'';
+
+  document.getElementById('deal-vel').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+      <div class="ctile"><div class="ctl">Avg deal cycle</div><div class="ctv">~90 days</div><div class="cts">Your estimate</div></div>
+      <div class="ctile"><div class="ctl">Deals closed</div><div class="ctv">${closed}</div><div class="cts">All time</div></div>
+      <div class="ctile"><div class="ctl">Oldest deal in pipe</div><div class="ctv">${oldest} days</div><div class="cts">Since last stage move*</div></div>
+      <div class="ctile"><div class="ctl">Expected close</div><div class="ctv">${oldest>0?'~'+Math.max(0,90-oldest)+'d':'—'}</div><div class="cts">Days remaining est.</div></div>
+    </div>
+    <div class="note">*Measured from last stage move, not from first contact date. Deals closed = unique contacts reaching Deal Closed in Disposition.</div>
+    ${staleAlert}${missingAlert}`;
+}
+
+function renderCallBreakdown(f,acqContactIds,workDays){
+  const warmFU=f.filter(r=>r.type==='follow_up_call'&&acqContactIds.has(r.contact_id)).length;
+  const warmCold=f.filter(r=>r.type==='cold_call'&&acqContactIds.has(r.contact_id)).length;
+  const trueCold=f.filter(r=>r.type==='cold_call'&&!acqContactIds.has(r.contact_id)).length;
+  const totalWarm=warmFU+warmCold;
+  const fuGoal=Math.round(goals.fu*workDays);
+  const coldGoal=Math.round(goals.cold*workDays);
+  function bar(v,g,col){const p=Math.min(100,Math.round((v/Math.max(g,1))*100));return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:160px;font-size:11px;color:var(--text2);flex-shrink:0;">${v.toLocaleString()} <span style="font-size:10px;color:var(--text3);">/ ${g.toLocaleString()} goal</span></div><div style="flex:1;background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;"><div style="width:${Math.max(3,p)}%;height:100%;background:${col};border-radius:99px;"></div></div><div style="font-size:10px;font-weight:700;width:36px;text-align:right;color:${p>=80?'#1d9e75':p>=50?'#ba7517':'#e24b4a'};">${p}%</div></div>`;}
+  document.getElementById('call-breakdown').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+      <div class="ctile"><div class="ctl">Warm calls (total)</div><div class="ctv" style="color:#1d9e75;">${totalWarm.toLocaleString()}</div><div class="cts">All calls to Acquisitions contacts</div></div>
+      <div class="ctile"><div class="ctl">Cold prospecting calls</div><div class="ctv" style="color:#378add;">${trueCold.toLocaleString()}</div><div class="cts">To contacts not yet in Acquisitions</div></div>
+      <div class="ctile"><div class="ctl">Warm follow-up type</div><div class="ctv">${warmFU.toLocaleString()}</div><div class="cts">Follow-up logged to warm contact</div></div>
+      <div class="ctile"><div class="ctl">Warm cold type</div><div class="ctv">${warmCold.toLocaleString()}</div><div class="cts">Cold logged but known warm contact</div></div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">vs goals</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Warm calls to Acquisitions leads (goal: ${fuGoal})</div>
+    ${bar(totalWarm,fuGoal,'#1d9e75')}
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px;margin-top:8px;">Cold prospecting calls (goal: ${coldGoal})</div>
+    ${bar(trueCold,coldGoal,'#378add')}
+    <div class="note">Cross-referenced by contact ID — any call to a contact in your Acquisitions pipeline counts as a warm call.</div>`;
+}
+
+function calcCosts(){
+  expenses={list:+document.getElementById('e-list').value||0,dialer:+document.getElementById('e-dialer').value||0,marketing:+document.getElementById('e-marketing').value||0,labor:+document.getElementById('e-labor').value||0,other:+document.getElementById('e-other').value||0};
+  localStorage.setItem('ehb_live_exp',JSON.stringify(expenses));
+  const total=Object.values(expenses).reduce((s,v)=>s+v,0);
+  const monthData=data.filter(r=>{const d=new Date(r.timestamp);return d.getMonth()===TODAY.getMonth()&&d.getFullYear()===TODAY.getFullYear();});
+  const contacts=Math.max(monthData.filter(r=>r.type==='contact_created').length,1);
+  const nl=Math.max(monthData.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('new lead')).length,1);
+  const verbal=Math.max(monthData.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,1);
+  const deals=Math.max(monthData.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('purchase agreement sign')).length,1);
+  const closedM=monthData.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed'));
+  const closedMIds=[...new Set(closedM.map(r=>r.contact_id))];
+  const rev=closedMIds.reduce((s,cid)=>{const latest=closedM.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return s+(parseFloat(latest?.opp_value)||0);},0);
+  if(total===0){document.getElementById('cost-results').innerHTML=`<div class="note" style="margin-top:10px;">Enter expenses above to see ROI and cost metrics.</div>`;return;}
+  const roi=Math.round((rev/total)*10)/10;const rc=pcc(Math.min(100,roi>=5?100:roi>=2?65:20));
+  document.getElementById('cost-results').innerHTML=`<div class="roi-bar" style="border-left-color:${rc};"><div style="font-size:28px;font-weight:700;color:${rc};">${roi}x ROI</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">${fmt(total)} spent → ${fmt(rev)} revenue this month</div></div><div class="crgrid"><div class="ctile"><div class="ctl">Total expenses</div><div class="ctv">${fmt(total)}</div><div class="cts">This month</div></div><div class="ctile"><div class="ctl">Cost per contact</div><div class="ctv">${fmt(Math.round(total/contacts))}</div><div class="cts">${contacts} contacts</div></div><div class="ctile"><div class="ctl">Cost per new lead</div><div class="ctv">${fmt(Math.round(total/nl))}</div><div class="cts">${nl} leads</div></div><div class="ctile"><div class="ctl">Cost per verbal offer</div><div class="ctv">${fmt(Math.round(total/verbal))}</div><div class="cts">${verbal} offers</div></div><div class="ctile"><div class="ctl">Cost per deal</div><div class="ctv">${fmt(Math.round(total/deals))}</div><div class="cts">${deals} deal(s)</div></div><div class="ctile"><div class="ctl">Return on spend</div><div class="ctv" style="color:${rc};">${roi}x</div><div class="cts">${roi>=5?'Excellent':roi>=2?'Strong':'Needs work'}</div></div></div>`;
+}
+
+function calcGoals(){
+  const tR=+document.getElementById('calc-rev').value||12000;const dV=+document.getElementById('calc-deal').value||12000;const cR=+document.getElementById('calc-rate').value||5.5;
+  const deals=Math.ceil(tR/dV);const contracts=Math.ceil(deals*4);const offers=Math.ceil(contracts*(100/cR));const leads=Math.ceil(offers*3);const dials=Math.ceil(leads*18);
+  document.getElementById('calc-result').innerHTML=`<div class="calcgrid"><div class="ctile"><div class="ctl">Revenue target</div><div class="ctv">${fmt(tR)}/mo</div></div><div class="ctile"><div class="ctl">Deals needed</div><div class="ctv">${deals}/mo</div></div><div class="ctile"><div class="ctl">Contracts needed</div><div class="ctv">${contracts}/mo</div></div><div class="ctile"><div class="ctl">Verbal offers needed</div><div class="ctv">${offers}/mo<div class="cts">${Math.ceil(offers/22)}/day</div></div></div><div class="ctile"><div class="ctl">New leads needed</div><div class="ctv">${leads}/mo</div></div><div class="ctile"><div class="ctl">Dials needed</div><div class="ctv">${fmtN(dials)}/mo<div class="cts">${Math.ceil(dials/22)}/day</div></div></div></div>`;
+}
+
+function renderDigest(){
+  const mon=new Date(TODAY);mon.setDate(TODAY.getDate()-((TODAY.getDay()+6)%7));
+  const lMon=new Date(mon);lMon.setDate(mon.getDate()-7);const lSun=new Date(mon);lSun.setDate(mon.getDate()-1);
+  const tw=data.filter(r=>inR(r,mon,TODAY));const lw=data.filter(r=>inR(r,lMon,lSun));
+  function wc(d,t){return d.filter(r=>r.type===t).length;}
+  function chg(a,b){if(b===0)return a>0?'+'+a:'—';const p=Math.round(((a-b)/b)*100);return(p>=0?'+':'')+p+'%';}
+  function cc(a,b){return a>=b?'#1d9e75':'#e24b4a';}
+  const metrics=[{lb:'Cold calls',tw:wc(tw,'cold_call'),lw:wc(lw,'cold_call')},{lb:'Follow-up calls',tw:wc(tw,'follow_up_call'),lw:wc(lw,'follow_up_call')},{lb:'New contacts',tw:wc(tw,'contact_created'),lw:wc(lw,'contact_created')},{lb:'Verbal offers',tw:tw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,lw:lw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length}];
+  const coldPct=Math.round((wc(tw,'cold_call')/Math.max(goals.cold*5,1))*100);
+  const insight=coldPct>=80?'Strong week — dial volume is solid. Keep the momentum going.':coldPct>=50?'Dial volume is behind pace. Prioritize hitting your daily call target.':'Call volume is significantly off track. Dials are your most important activity — everything downstream depends on it.';
+  document.getElementById('weekly-digest').innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})} — ${TODAY.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>${metrics.map(m=>`<div class="digrow"><div class="diglbl">${m.lb}</div><div class="dignums"><span class="digval">${m.tw.toLocaleString()}</span><span style="font-size:11px;font-weight:700;color:${cc(m.tw,m.lw)};">${chg(m.tw,m.lw)} vs last week</span></div></div>`).join('')}<div style="margin-top:12px;padding:11px 14px;background:var(--surface2);border-radius:10px;font-size:11px;line-height:1.6;"><span style="font-weight:700;">Insight: </span>${insight}</div>`;
+}
+
+let tI=null,rI=null;
+function renderTrend(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor=isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)';
+  const labels=[],cold=[],warm=[];
+  const allAcqIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
+  for(let i=89;i>=0;i--){const d=new Date(TODAY);d.setDate(TODAY.getDate()-i);labels.push(i%14===0||i===0?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'');const rows=data.filter(r=>{const rd=new Date(r.timestamp);return rd.toDateString()===d.toDateString();});cold.push(rows.filter(r=>r.type==='cold_call'&&!allAcqIds.has(r.contact_id)).length);warm.push(rows.filter(r=>(r.type==='follow_up_call'||r.type==='cold_call')&&allAcqIds.has(r.contact_id)).length);}
+  if(tI)tI.destroy();
+  tI=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels,datasets:[{label:'Cold calls',data:cold,borderColor:'#378add',backgroundColor:'rgba(55,138,221,0.07)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},{label:'Warm calls',data:warm,borderColor:'#1d9e75',backgroundColor:'rgba(29,158,117,0.07)',fill:true,tension:0.3,pointRadius:0,borderWidth:2,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:0,color:isDark?'#666':'#999'},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},color:isDark?'#666':'#999'},grid:{color:gridColor}}}}});
+}
+
+function renderRev(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor=isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)';
+  const months=[],actual=[],goalLine=[];
+  for(let m=5;m>=0;m--){const d=new Date(TODAY);d.setMonth(TODAY.getMonth()-m);months.push(d.toLocaleDateString('en-US',{month:'short',year:'2-digit'}));const rows=data.filter(r=>{const rd=new Date(r.timestamp);return rd.getMonth()===d.getMonth()&&rd.getFullYear()===d.getFullYear()&&r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed');});const uIds=[...new Set(rows.map(r=>r.contact_id))];const mRev=uIds.reduce((s,cid)=>{const latest=rows.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return s+(parseFloat(latest?.opp_value)||0);},0);actual.push(mRev);goalLine.push(goals.rev);}
+  if(rI)rI.destroy();
+  rI=new Chart(document.getElementById('revChart'),{type:'bar',data:{labels:months,datasets:[{label:'Revenue',data:actual,backgroundColor:'#378add',borderRadius:6},{label:'Goal',data:goalLine,type:'line',borderColor:'#e24b4a',borderDash:[5,3],backgroundColor:'transparent',pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11},color:isDark?'#666':'#999'},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},color:isDark?'#666':'#999',callback:v=>fmt(v)},grid:{color:gridColor}}}}});
+}
+
+let qpView='quarterly';
+function qpTab(v,el){qpView=v;document.querySelectorAll('.qp-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderQP();}
+
+function renderQP(){
+  const qRev=+document.getElementById('qp-rev').value||36000;
+  const dealSz=+document.getElementById('qp-deal').value||12000;
+  const successR=(+document.getElementById('qp-success').value||65)/100;
+  const offerR=(+document.getElementById('qp-offer-rate').value||5.5)/100;
+  const leadR=(+document.getElementById('qp-lead-rate').value||10)/100;
+  const dialR=(+document.getElementById('qp-dial-rate').value||0.5)/100;
+  const warmDayGoal=+document.getElementById('qp-warm').value||35;
+
+  const qProfit=qRev/successR;
+  const mRev=qRev/3, wRev=qRev/13, dRev=qRev/65;
+  const mProfit=qProfit/3, wProfit=qProfit/13, dProfit=qProfit/65;
+
+  const qContracts=Math.ceil(qRev/dealSz);
+  const mContracts=Math.ceil(qContracts/3);
+  const wContracts=Math.ceil(qContracts/13);
+  const dContracts=qContracts/65;
+
+  const qOffers=Math.ceil(qContracts/offerR);
+  const mOffers=Math.ceil(qOffers/3);
+  const wOffers=Math.ceil(qOffers/13);
+  const dOffers=Math.ceil(qOffers/65);
+
+  const qLeads=Math.ceil(qOffers/leadR);
+  const mLeads=Math.ceil(qLeads/3);
+  const wLeads=Math.ceil(qLeads/13);
+  const dLeads=Math.ceil(qLeads/65);
+
+  const qColdDials=Math.ceil(qLeads/dialR);
+  const mColdDials=Math.ceil(qColdDials/3);
+  const wColdDials=Math.ceil(qColdDials/13);
+  const dColdDials=Math.ceil(qColdDials/65);
+
+  // Warm dials scaled from daily goal
+  const dWarmDials=warmDayGoal;
+  const wWarmDials=warmDayGoal*5;
+  const mWarmDials=warmDayGoal*22;
+  const qWarmDials=warmDayGoal*65;
+
+  const all={
+    quarterly:{rev:qRev,profit:qProfit,contracts:qContracts,offers:qOffers,leads:qLeads,coldDials:qColdDials,warmDials:qWarmDials,label:'Quarter'},
+    monthly:{rev:mRev,profit:mProfit,contracts:mContracts,offers:mOffers,leads:mLeads,coldDials:mColdDials,warmDials:mWarmDials,label:'Month'},
+    weekly:{rev:wRev,profit:wProfit,contracts:wContracts,offers:wOffers,leads:wLeads,coldDials:wColdDials,warmDials:wWarmDials,label:'Week'},
+    daily:{rev:dRev,profit:dProfit,contracts:dContracts,offers:dOffers,leads:dLeads,coldDials:dColdDials,warmDials:dWarmDials,label:'Day'}
+  };
+
+  const v=all[qpView];
+  const fmtV=n=>n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+Math.round(n).toLocaleString();
+  const fmtI=n=>n>=1000?(n/1000).toFixed(1)+'K':n%1===0?n.toLocaleString():n.toFixed(1);
+
+  let tableHTML='';
+  if(qpView==='quarterly'){
+    tableHTML=`<table class="qp-table">
+      <thead><tr><th>Metric</th><th>Quarter</th><th>Monthly</th><th>Weekly</th><th>Daily</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Closed revenue</td><td>${fmtV(qRev)}</td><td>${fmtV(mRev)}</td><td>${fmtV(wRev)}</td><td>${fmtV(dRev)}</td></tr>
+        <tr><td class="row-label">Projected pipeline value</td><td>${fmtV(qProfit)}</td><td>${fmtV(mProfit)}</td><td>${fmtV(wProfit)}</td><td>${fmtV(dProfit)}</td></tr>
+        <tr><td class="row-label"># of deals to close</td><td>${fmtI(qContracts)}</td><td>${fmtI(mContracts)}</td><td>${fmtI(wContracts)}</td><td>${fmtI(dContracts)}</td></tr>
+        <tr><td class="row-label"># of verbal offers</td><td>${fmtI(qOffers)}</td><td>${fmtI(mOffers)}</td><td>${fmtI(wOffers)}</td><td>${fmtI(dOffers)}</td></tr>
+        <tr><td class="row-label"># of leads needed</td><td>${fmtI(qLeads)}</td><td>${fmtI(mLeads)}</td><td>${fmtI(wLeads)}</td><td>${fmtI(dLeads)}</td></tr>
+        <tr><td class="row-label" style="color:#378add;">Cold dials needed</td><td style="color:#378add;font-weight:700;">${fmtI(qColdDials)}</td><td style="color:#378add;font-weight:700;">${fmtI(mColdDials)}</td><td style="color:#378add;font-weight:700;">${fmtI(wColdDials)}</td><td style="color:#378add;font-weight:700;">${fmtI(dColdDials)}</td></tr>
+        <tr><td class="row-label" style="color:#1d9e75;">Warm follow-up dials</td><td style="color:#1d9e75;font-weight:700;">${fmtI(qWarmDials)}</td><td style="color:#1d9e75;font-weight:700;">${fmtI(mWarmDials)}</td><td style="color:#1d9e75;font-weight:700;">${fmtI(wWarmDials)}</td><td style="color:#1d9e75;font-weight:700;">${fmtI(dWarmDials)}</td></tr>
+      </tbody>
+    </table>`;
+  } else {
+    tableHTML=`<table class="qp-table">
+      <thead><tr><th>Metric</th><th>${v.label} target</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Closed revenue</td><td>${fmtV(v.rev)}</td></tr>
+        <tr><td class="row-label">Projected pipeline value</td><td>${fmtV(v.profit)}</td></tr>
+        <tr><td class="row-label"># of deals to close</td><td>${fmtI(v.contracts)}</td></tr>
+        <tr><td class="row-label"># of verbal offers</td><td>${fmtI(v.offers)}</td></tr>
+        <tr><td class="row-label"># of leads needed</td><td>${fmtI(v.leads)}</td></tr>
+        <tr><td class="row-label" style="color:#378add;">Cold dials needed</td><td style="color:#378add;font-weight:700;">${fmtI(v.coldDials)}</td></tr>
+        <tr><td class="row-label" style="color:#1d9e75;">Warm follow-up dials</td><td style="color:#1d9e75;font-weight:700;">${fmtI(v.warmDials)}</td></tr>
+      </tbody>
+    </table>`;
+  }
+
+  document.getElementById('qp-table-wrap').innerHTML=tableHTML;
+
+  document.getElementById('qp-highlight').innerHTML=`
+    <div class="qp-highlight" style="grid-template-columns:repeat(5,1fr);">
+      <div class="qp-stat"><div class="qp-stat-val" style="color:#378add;">${fmtI(dColdDials)}</div><div class="qp-stat-lbl">Cold dials / day</div><div class="qp-stat-sub">prospecting target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val" style="color:#1d9e75;">${fmtI(dWarmDials)}</div><div class="qp-stat-lbl">Warm dials / day</div><div class="qp-stat-sub">follow-up target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dLeads)}</div><div class="qp-stat-lbl">Leads / day</div><div class="qp-stat-sub">conversion target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dOffers)}</div><div class="qp-stat-lbl">Offers / day</div><div class="qp-stat-sub">results target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dContracts)}</div><div class="qp-stat-lbl">Contracts / day</div><div class="qp-stat-sub">avg needed</div></div>
+    </div>`;
+
+  document.getElementById('qp-note').innerHTML=
+    `Cold dials: ${fmtI(qColdDials)} total → ${fmtI(qLeads)} leads (${(+document.getElementById('qp-dial-rate').value||0.5)}% dial→lead) → ${fmtI(qOffers)} verbal offers (${(+document.getElementById('qp-lead-rate').value||10)}% lead→offer) → ${qContracts} contracts (${(+document.getElementById('qp-offer-rate').value||5.5)}% offer→contract) → ${fmtV(qRev)} closed revenue. Warm dials: ${fmtI(qWarmDials)} per quarter (${warmDayGoal}/day × 65 working days) — keeps active pipeline moving forward. Projected pipeline value factors in a ${Math.round((1-successR)*100)}% fallthrough rate.`;
+
+  localStorage.setItem('ehb_qp',JSON.stringify({rev:qRev,deal:dealSz,success:+document.getElementById('qp-success').value,offerR:+document.getElementById('qp-offer-rate').value,leadR:+document.getElementById('qp-lead-rate').value,dialR:+document.getElementById('qp-dial-rate').value,warm:warmDayGoal}));
+}
+
+  // Projected profit = revenue / success rate (accounts for fallthrough)
+  const qProfit=qRev/successR;
+  const mRev=qRev/3, wRev=qRev/13, dRev=qRev/65;
+  const mProfit=qProfit/3, wProfit=qProfit/13, dProfit=qProfit/65;
+
+  // Contracts needed at each level
+  const qContracts=Math.ceil(qRev/dealSz);
+  const mContracts=Math.ceil(qContracts/3);
+  const wContracts=Math.ceil(qContracts/13);
+  const dContracts=qContracts/65;
+
+  // Offers needed (contract = offer * offerR)
+  const qOffers=Math.ceil(qContracts/offerR);
+  const mOffers=Math.ceil(qOffers/3);
+  const wOffers=Math.ceil(qOffers/13);
+  const dOffers=Math.ceil(qOffers/65);
+
+  // Leads needed (offer = lead * leadR)
+  const qLeads=Math.ceil(qOffers/leadR);
+  const mLeads=Math.ceil(qLeads/3);
+  const wLeads=Math.ceil(qLeads/13);
+  const dLeads=Math.ceil(qLeads/65);
+
+  // Dials needed (lead = dial * dialR)
+  const qDials=Math.ceil(qLeads/dialR);
+  const mDials=Math.ceil(qDials/3);
+  const wDials=Math.ceil(qDials/13);
+  const dDials=Math.ceil(qDials/65);
+
+  const all={
+    quarterly:{rev:qRev,profit:qProfit,contracts:qContracts,offers:qOffers,leads:qLeads,dials:qDials,label:'Quarter'},
+    monthly:{rev:mRev,profit:mProfit,contracts:mContracts,offers:mOffers,leads:mLeads,dials:mDials,label:'Month'},
+    weekly:{rev:wRev,profit:wProfit,contracts:wContracts,offers:wOffers,leads:wLeads,dials:wDials,label:'Week'},
+    daily:{rev:dRev,profit:dProfit,contracts:dContracts,offers:dOffers,leads:dLeads,dials:dDials,label:'Day'}
+  };
+
+  const v=all[qpView];
+  const fmtV=n=>n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+Math.round(n).toLocaleString();
+  const fmtI=n=>n>=1000?(n/1000).toFixed(1)+'K':n%1===0?n.toLocaleString():n.toFixed(1);
+
+  // Show full breakdown table for quarterly, else single column
+  let tableHTML='';
+  if(qpView==='quarterly'){
+    tableHTML=`<table class="qp-table">
+      <thead><tr><th>Metric</th><th>Quarter</th><th>Monthly</th><th>Weekly</th><th>Daily</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Closed revenue</td><td>${fmtV(qRev)}</td><td>${fmtV(mRev)}</td><td>${fmtV(wRev)}</td><td>${fmtV(dRev)}</td></tr>
+        <tr><td class="row-label">Projected pipeline value</td><td>${fmtV(qProfit)}</td><td>${fmtV(mProfit)}</td><td>${fmtV(wProfit)}</td><td>${fmtV(dProfit)}</td></tr>
+        <tr><td class="row-label"># of deals to close</td><td>${fmtI(qContracts)}</td><td>${fmtI(mContracts)}</td><td>${fmtI(wContracts)}</td><td>${fmtI(dContracts)}</td></tr>
+        <tr><td class="row-label"># of verbal offers</td><td>${fmtI(qOffers)}</td><td>${fmtI(mOffers)}</td><td>${fmtI(wOffers)}</td><td>${fmtI(dOffers)}</td></tr>
+        <tr><td class="row-label"># of leads needed</td><td>${fmtI(qLeads)}</td><td>${fmtI(mLeads)}</td><td>${fmtI(wLeads)}</td><td>${fmtI(dLeads)}</td></tr>
+        <tr><td class="row-label">Dials needed</td><td class="qp-yr">${fmtI(qDials)}</td><td class="qp-yr">${fmtI(mDials)}</td><td class="qp-yr">${fmtI(wDials)}</td><td class="qp-yr">${fmtI(dDials)}</td></tr>
+      </tbody>
+    </table>`;
+  } else {
+    tableHTML=`<table class="qp-table">
+      <thead><tr><th>Metric</th><th>${v.label} target</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Closed revenue</td><td>${fmtV(v.rev)}</td></tr>
+        <tr><td class="row-label">Projected pipeline value</td><td>${fmtV(v.profit)}</td></tr>
+        <tr><td class="row-label"># of deals to close</td><td>${fmtI(v.contracts)}</td></tr>
+        <tr><td class="row-label"># of verbal offers</td><td>${fmtI(v.offers)}</td></tr>
+        <tr><td class="row-label"># of leads needed</td><td>${fmtI(v.leads)}</td></tr>
+        <tr><td class="row-label">Dials needed</td><td class="qp-yr">${fmtI(v.dials)}</td></tr>
+      </tbody>
+    </table>`;
+  }
+
+  document.getElementById('qp-table-wrap').innerHTML=tableHTML;
+
+  // Always show daily targets as the highlight stats
+  document.getElementById('qp-highlight').innerHTML=`
+    <div class="qp-highlight">
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dDials)}</div><div class="qp-stat-lbl">Dials / day</div><div class="qp-stat-sub">productivity target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dLeads)}</div><div class="qp-stat-lbl">Leads / day</div><div class="qp-stat-sub">conversion target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dOffers)}</div><div class="qp-stat-lbl">Offers / day</div><div class="qp-stat-sub">results target</div></div>
+      <div class="qp-stat"><div class="qp-stat-val">${fmtI(dContracts)}</div><div class="qp-stat-lbl">Contracts / day</div><div class="qp-stat-sub">avg needed</div></div>
+    </div>`;
+
+  document.getElementById('qp-note').innerHTML=
+    `Based on: ${fmtI(qDials)} total dials → ${fmtI(qLeads)} leads (${((+document.getElementById('qp-dial-rate').value)||0.5)}% dial→lead) → ${fmtI(qOffers)} verbal offers (${((+document.getElementById('qp-lead-rate').value)||10)}% lead→offer) → ${qContracts} contracts (${((+document.getElementById('qp-offer-rate').value)||5.5)}% offer→contract) → ${fmtV(qRev)} closed revenue at ${dealSz>=1000?'$'+(dealSz/1000).toFixed(0)+'K':'$'+dealSz} avg deal. Projected pipeline value factors in a ${Math.round((1-successR)*100)}% fallthrough rate.`;
+
+  localStorage.setItem('ehb_qp',JSON.stringify({rev:qRev,deal:dealSz,success:+document.getElementById('qp-success').value,offerR:+document.getElementById('qp-offer-rate').value,leadR:+document.getElementById('qp-lead-rate').value,dialR:+document.getElementById('qp-dial-rate').value}));
+}
+
+function loadQP(){
+  const s=localStorage.getItem('ehb_qp');
+  if(s){const p=JSON.parse(s);document.getElementById('qp-rev').value=p.rev||36000;document.getElementById('qp-deal').value=p.deal||12000;document.getElementById('qp-success').value=p.success||65;document.getElementById('qp-offer-rate').value=p.offerR||5.5;document.getElementById('qp-lead-rate').value=p.leadR||10;document.getElementById('qp-dial-rate').value=p.dialR||0.5;document.getElementById('qp-warm').value=p.warm||35;}
+  renderQP();
+}
+
+function parseSheet(values){
+  if(!values||values.length<2)return[];
+  return values.slice(1).map(r=>({timestamp:r[0]||'',type:r[1]||'',contact_name:r[2]||'',contact_id:r[3]||'',pipeline:r[4]||'',stage:r[5]||'',opp_value:r[6]||0,notes:r[7]||''})).filter(r=>r.timestamp);
+}
+
+async function loadData(){
+  const pill=document.getElementById('status-pill');
+  pill.textContent='Connecting...';pill.className='pill pill-load';
+  try{
+    const GID='590381830';
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+    const res=await fetch(url);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const csv=await res.text();
+    const rows=csv.trim().split('\n').slice(1);
+    const values=rows.map(row=>{
+      const cols=[];let cur='',inQ=false;
+      for(let i=0;i<row.length;i++){const c=row[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=c;}}
+      cols.push(cur.trim());
+      return cols;
+    });
+    if(values.length>0){data=parseSheet(values);pill.textContent='Live data ✓';pill.className='pill pill-live';}
+    else{throw new Error('No data');}
+  }catch(e){pill.textContent='Connection error';pill.className='pill pill-error';console.error('Sheet error:',e);}
+  render();
+}
+
+document.getElementById('date-out').textContent=TODAY.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('date-out').className='pill';
+loadSaved();
+loadQP();
+loadData();
+</script>
+</body>
+</html>
