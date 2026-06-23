@@ -819,7 +819,7 @@ function renderQP(){
     </div>`;
 
   document.getElementById('qp-note').innerHTML=
-    `Cold dials: ${fmtI(qColdDials)} total → ${fmtI(qLeads)} leads (${(+document.getElementById('qp-dial-rate').value||0.5)}% dial→lead) → ${fmtI(qOffers)} verbal offers (${(+document.getElementById('qp-lead-rate').value||10)}% lead→offer) → ${qContracts} contracts (${(+document.getElementById('qp-offer-rate').value||5.5)}% offer→contract) → ${fmtV(qRev)} closed revenue. Warm dials: ${fmtI(qWarmDials)} per quarter (${warmDayGoal}/day × 65 working days) — keeps active pipeline moving forward. Projected pipeline value factors in a ${Math.round((1-successR)*100)}% fallthrough rate.`;
+    'Cold dials: '+fmtI(qColdDials)+' total \u2192 '+fmtI(qLeads)+' leads ('+(+document.getElementById('qp-dial-rate').value||0.5)+'% dial\u2192lead) \u2192 '+fmtI(qOffers)+' verbal offers ('+(+document.getElementById('qp-lead-rate').value||10)+'% lead\u2192offer) \u2192 '+qContracts+' contracts ('+(+document.getElementById('qp-offer-rate').value||5.5)+'% offer\u2192contract) \u2192 '+fmtV(qRev)+' closed revenue. Warm dials: '+fmtI(qWarmDials)+' per quarter ('+warmDayGoal+'/day \u00d7 65 working days) \u2014 keeps active pipeline moving forward. Projected pipeline value factors in a '+Math.round((1-successR)*100)+'% fallthrough rate.';
 
   localStorage.setItem('ehb_qp',JSON.stringify({rev:qRev,deal:dealSz,success:+document.getElementById('qp-success').value,offerR:+document.getElementById('qp-offer-rate').value,leadR:+document.getElementById('qp-lead-rate').value,dialR:+document.getElementById('qp-dial-rate').value,warm:warmDayGoal}));
 }
@@ -904,7 +904,7 @@ function renderQP(){
     </div>`;
 
   document.getElementById('qp-note').innerHTML=
-    `Based on: ${fmtI(qDials)} total dials → ${fmtI(qLeads)} leads (${((+document.getElementById('qp-dial-rate').value)||0.5)}% dial→lead) → ${fmtI(qOffers)} verbal offers (${((+document.getElementById('qp-lead-rate').value)||10)}% lead→offer) → ${qContracts} contracts (${((+document.getElementById('qp-offer-rate').value)||5.5)}% offer→contract) → ${fmtV(qRev)} closed revenue at ${dealSz>=1000?'$'+(dealSz/1000).toFixed(0)+'K':'$'+dealSz} avg deal. Projected pipeline value factors in a ${Math.round((1-successR)*100)}% fallthrough rate.`;
+    'Based on: '+fmtI(qDials)+' total dials \u2192 '+fmtI(qLeads)+' leads ('+(((+document.getElementById('qp-dial-rate').value)||0.5))+'% dial\u2192lead) \u2192 '+fmtI(qOffers)+' verbal offers ('+(((+document.getElementById('qp-lead-rate').value)||10))+'% lead\u2192offer) \u2192 '+qContracts+' contracts ('+(((+document.getElementById('qp-offer-rate').value)||5.5))+'% offer\u2192contract) \u2192 '+fmtV(qRev)+' closed revenue at '+(dealSz>=1000?'$'+(dealSz/1000).toFixed(0)+'K':'$'+dealSz)+' avg deal. Projected pipeline value factors in a '+Math.round((1-successR)*100)+'% fallthrough rate.';
 
   localStorage.setItem('ehb_qp',JSON.stringify({rev:qRev,deal:dealSz,success:+document.getElementById('qp-success').value,offerR:+document.getElementById('qp-offer-rate').value,leadR:+document.getElementById('qp-lead-rate').value,dialR:+document.getElementById('qp-dial-rate').value}));
 }
