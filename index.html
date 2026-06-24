@@ -917,7 +917,7 @@ function loadQP(){
 
 function parseSheet(values){
   if(!values||values.length<2)return[];
-  return values.slice(1).map(r=>({timestamp:r[0]||'',type:r[1]||'',contact_name:r[2]||'',contact_id:r[3]||'',pipeline:r[4]||'',stage:r[5]||'',opp_value:r[6]||0,notes:r[7]||''})).filter(r=>r.timestamp);
+  return values.slice(1).map(r=>({timestamp:r[0]||'',type:r[1]||'',contact_name:r[2]||'',contact_id:r[3]||'',pipeline:r[4]||'',stage:r[5]||'',opp_value:parseFloat((r[6]||'').toString().replace(/[^0-9.]/g,''))||0,notes:r[7]||''})).filter(r=>r.timestamp);
 }
 
 async function loadData(){
@@ -925,7 +925,7 @@ async function loadData(){
   pill.textContent='Connecting...';pill.className='pill pill-load';
   try{
     const url='https://docs.google.com/spreadsheets/d/e/2PACX-1vRAjVcMDZ-54fO73HKurJiwUDamgapNMBRkS7gg_PW0a7KVl1ZskVFXmi3YORVUt_8UcscYG31r5xvy/pub?gid=590381830&single=true&output=csv';
-    const res=await fetch(url,{redirect:'follow'});
+    const res=await fetch(url,{redirect:'follow',mode:'cors'});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const csv=await res.text();
     const rows=csv.trim().split('\n').slice(1);
@@ -935,9 +935,9 @@ async function loadData(){
       cols.push(cur.trim());
       return cols;
     });
-    if(values.length>0){data=parseSheet(values);pill.textContent='Live data checkmark';pill.className='pill pill-live';}
+    if(values.length>0){data=parseSheet(values);pill.textContent='\u2713 Live';pill.className='pill pill-live';}
     else{throw new Error('No data');}
-  }catch(e){pill.textContent='Connection error';pill.className='pill pill-error';console.error('Sheet error:',e);}
+  }catch(e){pill.textContent='\u26a0 ' + (e.message||'Connection error');pill.className='pill pill-error';console.error('Sheet error:',e);}
   render();
 }
 
@@ -945,6 +945,7 @@ document.getElementById('date-out').textContent=TODAY.toLocaleDateString('en-US'
 document.getElementById('date-out').className='pill';
 loadSaved();
 loadQP();
+render();
 loadData();
 </script>
 </body>
