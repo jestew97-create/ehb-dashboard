@@ -395,6 +395,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <a href="#ops-funnel">Funnel</a>
     <a href="#ops-calls">Calls</a>
     <a href="#ops-digest">Digest</a>
+    <a href="#ops-deadleads">Dead Leads</a>
+    <a href="#ops-leadsource">Lead Source</a>
   </div>
   <div class="main">
 
@@ -504,6 +506,25 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <div class="card">
         <div class="ct">📅 Week over week</div>
         <div id="weekly-digest"></div>
+      </div>
+    </div>
+
+
+    <!-- DEAD LEADS -->
+    <div class="section-zone" id="ops-deadleads">
+      <div class="zone-label">Dead Leads</div>
+      <div class="card">
+        <div class="ct">💀 Dead leads — by disposition reason</div>
+        <div id="dead-leads-breakdown"></div>
+      </div>
+    </div>
+
+    <!-- LEAD SOURCE -->
+    <div class="section-zone" id="ops-leadsource">
+      <div class="zone-label">Lead Source</div>
+      <div class="card">
+        <div class="ct">📡 Lead source — SMS bot vs cold caller</div>
+        <div id="lead-source-breakdown"></div>
       </div>
     </div>
 
@@ -682,12 +703,12 @@ function switchPage(page,el){
 // ===== LEVELS =====
 const LEVELS=[
   {lvl:1,title:'Cold Caller',xpNeeded:0},
-  {lvl:2,title:'Lead Hunter',xpNeeded:100},
-  {lvl:3,title:'Pipeline Builder',xpNeeded:300},
-  {lvl:4,title:'Deal Maker',xpNeeded:600},
-  {lvl:5,title:'Closer',xpNeeded:1000},
-  {lvl:6,title:'Revenue Machine',xpNeeded:1500},
-  {lvl:7,title:'Deal Hunter',xpNeeded:2200},
+  {lvl:2,title:'Lead Generator',xpNeeded:100},
+  {lvl:3,title:'Deal Hunter',xpNeeded:300},
+  {lvl:4,title:'Pipeline Builder',xpNeeded:600},
+  {lvl:5,title:'Offer Machine',xpNeeded:1000},
+  {lvl:6,title:'Closer',xpNeeded:1500},
+  {lvl:7,title:'Revenue Machine',xpNeeded:2200},
   {lvl:8,title:'The Machine',xpNeeded:3000},
   {lvl:9,title:'Wholesaling Pro',xpNeeded:4000},
   {lvl:10,title:'EHB Legend',xpNeeded:5500},
@@ -940,7 +961,7 @@ function render(){
 
   const gameStats=computeGameStats();
   renderGameBar(gameStats);renderBoss(gameStats);renderDailyQuests(gameStats);renderWeeklyWin();renderAchievements(gameStats);renderLeaderboard();
-  renderFunnel(fS);renderConv(f,fS);renderPipeVal(allS);renderForecast();renderDealVel(allS);renderCallBreakdown(f,acqContactIds,workDays);calcCosts();renderDigest();renderTrend();renderRev();calcGoals();
+  renderFunnel(fS);renderConv(f,fS);renderPipeVal(allS);renderForecast();renderDealVel(allS);renderCallBreakdown(f,acqContactIds,workDays);calcCosts();renderDigest();renderTrend();renderRev();calcGoals();renderDeadLeads();renderLeadSource();
 }
 
 function renderFunnel(stages){
@@ -1083,6 +1104,125 @@ async function loadData(){
     if(values.length>0){data=parseSheet(values);pill.textContent='✓ Live';pill.className='pill pill-live';}else{throw new Error('No data');}
   }catch(e){pill.textContent='⚠ '+(e.message||'Connection error');pill.className='pill pill-error';}
   render();
+}
+
+
+function renderDeadLeads(){
+  const deadRows=data.filter(r=>r.type==='dead_lead');
+  const total=new Set(deadRows.map(r=>r.contact_id)).size;
+
+  const stages=[
+    {key:'dnc',lb:'DNC',col:'#e24b4a',emoji:'🚫'},
+    {key:'wrong number',lb:'Wrong Number',col:'#F59E0B',emoji:'📵'},
+    {key:'no longer own',lb:'No Longer Own',col:'#7f77dd',emoji:'🏚️'},
+    {key:'not the owner',lb:'Not The Owner',col:'#378add',emoji:'👤'},
+    {key:'properties we aren',lb:'Not Interested in Property',col:'#94A3B8',emoji:'🏠'},
+    {key:'opted out',lb:'Opted Out',col:'#6A90A8',emoji:'✋'},
+    {key:'hostile',lb:'Hostile Seller',col:'#d85a30',emoji:'😤'},
+  ];
+
+  if(total===0){
+    document.getElementById('dead-leads-breakdown').innerHTML=`<div class="note">No dead leads tracked yet. Data will appear here once contacts are dispositioned into the Dead Leads pipeline.</div>`;
+    return;
+  }
+
+  const max=Math.max(...stages.map(s=>new Set(deadRows.filter(r=>r.stage&&r.stage.toLowerCase().includes(s.key)).map(r=>r.contact_id)).size),1);
+
+  const rows=stages.map(s=>{
+    const count=new Set(deadRows.filter(r=>r.stage&&r.stage.toLowerCase().includes(s.key)).map(r=>r.contact_id)).size;
+    const pct=total>0?Math.round((count/total)*100):0;
+    const barW=Math.max(0,Math.round((count/max)*100));
+    return{...s,count,pct,barW};
+  }).filter(s=>s.count>0).sort((a,b)=>b.count-a.count);
+
+  document.getElementById('dead-leads-breakdown').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:13px;color:var(--text2);">Total dead leads tracked: <strong style="color:var(--text);font-family:'JetBrains Mono',monospace;">${total.toLocaleString()}</strong></div>
+      <div style="font-size:11px;color:var(--text3);">All time</div>
+    </div>
+    ${rows.map(s=>`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-size:12px;color:var(--text2);">${s.emoji} ${s.lb}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${s.pct}%</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);width:40px;text-align:right;">${s.count.toLocaleString()}</span>
+        </div>
+      </div>
+      <div style="height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;border:1px solid var(--border);">
+        <div style="width:${s.barW}%;height:100%;background:${s.col};border-radius:99px;transition:width .6s ease-out;"></div>
+      </div>
+    </div>`).join('')}
+    <div class="note">Tracks contacts automatically moved into the Dead Leads pipeline (07) by OfferBolt workflows.</div>`;
+}
+
+function renderLeadSource(){
+  const allAcqStages=data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions'));
+
+  // SMS bot leads = contacts that hit Appointments stage
+  const smsLeads=new Set(allAcqStages.filter(r=>r.stage&&r.stage.toLowerCase().includes('appointment')).map(r=>r.contact_id));
+
+  // Cold caller leads = contacts that hit New Leads stage
+  const coldLeads=new Set(allAcqStages.filter(r=>r.stage&&r.stage.toLowerCase().includes('new lead')).map(r=>r.contact_id)).size;
+
+  const smsCount=smsLeads.size;
+  const total=smsCount+coldLeads;
+
+  if(total===0){
+    document.getElementById('lead-source-breakdown').innerHTML=`<div class="note">No lead source data yet. Once contacts start entering through Appointments (SMS bot) or New Leads (cold caller), the breakdown will appear here.</div>`;
+    return;
+  }
+
+  const smsPct=total>0?Math.round((smsCount/total)*100):0;
+  const coldPct=total>0?Math.round((coldLeads/total)*100):0;
+
+  // Conversion rates by source
+  const smsVerbal=new Set(allAcqStages.filter(r=>smsLeads.has(r.contact_id)&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).map(r=>r.contact_id)).size;
+  const coldLeadIds=new Set(allAcqStages.filter(r=>r.stage&&r.stage.toLowerCase().includes('new lead')).map(r=>r.contact_id));
+  const coldVerbal=new Set(allAcqStages.filter(r=>coldLeadIds.has(r.contact_id)&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).map(r=>r.contact_id)).size;
+
+  const smsConv=smsCount>0?Math.round((smsVerbal/smsCount)*100):0;
+  const coldConv=coldLeads>0?Math.round((coldVerbal/coldLeads)*100):0;
+
+  document.getElementById('lead-source-breakdown').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid #00C9A7;border-radius:6px;padding:14px 16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">📱 SMS Bot</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;color:var(--text);">${smsCount.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;">leads via Appointments</div>
+        <div style="height:4px;background:var(--border);border-radius:99px;margin-top:10px;overflow:hidden;">
+          <div style="width:${smsPct}%;height:100%;background:#00C9A7;border-radius:99px;"></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#00C9A7;margin-top:4px;font-weight:600;">${smsPct}% of leads · ${smsConv}% → verbal offer</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid #378add;border-radius:6px;padding:14px 16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">📞 Cold Caller</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;color:var(--text);">${coldLeads.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;">leads via New Leads</div>
+        <div style="height:4px;background:var(--border);border-radius:99px;margin-top:10px;overflow:hidden;">
+          <div style="width:${coldPct}%;height:100%;background:#378add;border-radius:99px;"></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#378add;margin-top:4px;font-weight:600;">${coldPct}% of leads · ${coldConv}% → verbal offer</div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px 14px;">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">Which source converts better?</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="font-size:12px;color:var(--text2);width:100px;flex-shrink:0;">SMS Bot</div>
+        <div style="flex:1;height:10px;background:var(--border);border-radius:99px;overflow:hidden;">
+          <div style="width:${smsConv}%;height:100%;background:#00C9A7;border-radius:99px;"></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text);width:36px;text-align:right;">${smsConv}%</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="font-size:12px;color:var(--text2);width:100px;flex-shrink:0;">Cold Caller</div>
+        <div style="flex:1;height:10px;background:var(--border);border-radius:99px;overflow:hidden;">
+          <div style="width:${coldConv}%;height:100%;background:#378add;border-radius:99px;"></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text);width:36px;text-align:right;">${coldConv}%</div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:10px;">Lead → verbal offer conversion rate by source. SMS bot leads entered via Appointments stage. Cold caller leads entered via New Leads stage.</div>`;
 }
 
 document.getElementById('date-out').textContent=TODAY.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
