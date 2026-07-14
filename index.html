@@ -492,9 +492,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <div class="card">
         <div class="ct">📈 90-day activity trend</div>
         <div class="legend">
-          <span class="legend-item"><span class="legend-sq" style="background:#378ADD;"></span>Cold calls</span>
-          <span class="legend-item"><span class="legend-sq" style="border:2px dashed #1D9E75;background:transparent;"></span>Warm calls</span>
-          <span style="font-size:10px;color:var(--text3);margin-left:4px;">(Contacts removed — bulk imports distort scale)</span>
+          <span class="legend-item"><span class="legend-sq" style="background:#00C9A7;"></span>Warm follow-up calls</span>
         </div>
         <div style="position:relative;width:100%;height:200px;"><canvas id="trendChart"></canvas></div>
       </div>
@@ -663,9 +661,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <div class="card">
         <div class="ct">🎯 Goals — edit anytime</div>
         <div class="gg">
-          <div class="gf"><label>Cold calls / day</label><input id="g-cold" type="number" value="500"/></div>
           <div class="gf"><label>Follow-up calls / day</label><input id="g-fu" type="number" value="35"/></div>
-          <div class="gf"><label>New contacts / month</label><input id="g-contacts" type="number" value="10000"/></div>
           <div class="gf"><label>Verbal offers / week</label><input id="g-offers" type="number" value="18"/></div>
           <div class="gf"><label>Deals / month</label><input id="g-deals" type="number" value="1"/></div>
           <div class="gf"><label>Revenue / month ($)</label><input id="g-rev" type="number" value="12000"/></div>
@@ -730,7 +726,7 @@ const ACHIEVEMENTS=[
 ];
 
 function computeGameStats(){
-  const allCalls=data.filter(r=>r.type==='call'||r.type==='cold_call'||r.type==='follow_up_call');
+  const allCalls=data.filter(r=>r.type==='call'||r.type==='follow_up_call');
   const totalCalls=allCalls.length;
   const allStages=data.filter(r=>r.type==='stage_change');
   const totalOffers=new Set(allStages.filter(r=>r.stage&&r.stage.toLowerCase().includes('verbal offer')).map(r=>r.contact_id)).size;
@@ -775,8 +771,6 @@ function renderGameBar(stats){
   document.getElementById('gb-xpnums').textContent=li.xpInLevel.toLocaleString()+' / '+(li.next?li.xpNeededForNext.toLocaleString():'MAX');
   document.getElementById('gb-streak').textContent=stats.streak;
   document.getElementById('gb-flame').style.filter=stats.streak>=7?'drop-shadow(0 0 8px #f59e0b)':stats.streak>=3?'drop-shadow(0 0 4px #f59e0b88)':'none';
-  const coldToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&(r.type==='call'||r.type==='cold_call');}).length;
-  const coldPct=Math.round((coldToday/Math.max(goals.cold,1))*100);
   const pipeScore=Math.min(100,Math.round((stats.pipelineVal/100000)*100));
   const offerPct=Math.min(100,Math.round((stats.offersThisMonth/Math.max(goals.offers*4,1))*100));
   const hs=Math.round(coldPct*.4+pipeScore*.35+offerPct*.25);
@@ -803,17 +797,13 @@ function renderBoss(stats){
 
 function renderDailyQuests(stats){
   const allAcqIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
-  const coldToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&(r.type==='call'||r.type==='cold_call');}).length;
   const warmToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&(r.type==='follow_up_call'||(r.type==='call'&&allAcqIds.has(r.contact_id)));}).length;
   const offersToday=new Set(data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer');}).map(r=>r.contact_id)).size;
   const stagesMovedToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&r.type==='stage_change';}).length;
-  const contactsToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&r.type==='contact_created';}).length;
   const quests=[
-    {icon:'📞',name:'Cold Call Blitz',goal:goals.cold,val:coldToday,xp:50,unit:'calls'},
     {icon:'🔥',name:'Warm Follow-Ups',goal:goals.fu,val:warmToday,xp:30,unit:'calls'},
     {icon:'💬',name:'Make an Offer',goal:1,val:offersToday,xp:75,unit:'offers'},
     {icon:'🚀',name:'Move the Pipeline',goal:3,val:stagesMovedToday,xp:40,unit:'moves'},
-    {icon:'👤',name:'New Contacts',goal:Math.max(1,Math.round(goals.contacts/22)),val:contactsToday,xp:20,unit:'contacts'},
   ];
   document.getElementById('quest-grid').innerHTML=quests.map(q=>{
     const pct=Math.min(100,Math.round((q.val/Math.max(q.goal,1))*100));const done=pct>=100;
@@ -824,13 +814,11 @@ function renderDailyQuests(stats){
 function renderWeeklyWin(){
   const weekStart=new Date(TODAY);weekStart.setDate(TODAY.getDate()-6);
   const wd=data.filter(r=>{const d=new Date(r.timestamp);return d>=weekStart;});
-  const calls=wd.filter(r=>r.type==='call'||r.type==='cold_call'||r.type==='follow_up_call').length;
   const offers=new Set(wd.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).map(r=>r.contact_id)).size;
   const pipeAdds=new Set(wd.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id)).size;
   const pas=new Set(wd.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('purchase agreement sent')).map(r=>r.contact_id)).size;
-  const contacts=wd.filter(r=>r.type==='contact_created').length;
   const deals=new Set(wd.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed')).map(r=>r.contact_id)).size;
-  document.getElementById('win-grid').innerHTML=[{v:calls,l:'Calls'},{v:offers,l:'Offers'},{v:pipeAdds,l:'Pipeline'},{v:pas,l:'PAs sent'},{v:contacts,l:'Contacts'},{v:deals,l:'Deals'}].map(s=>`<div class="win-stat"><div class="win-val">${s.v}</div><div class="win-lbl">${s.l}</div></div>`).join('');
+  document.getElementById('win-grid').innerHTML=[{v:offers,l:'Offers'},{v:pipeAdds,l:'Pipeline'},{v:pas,l:'PAs sent'},{v:deals,l:'Deals'}].map(s=>`<div class="win-stat"><div class="win-val">${s.v}</div><div class="win-lbl">${s.l}</div></div>`).join('');
 }
 
 function renderAchievements(stats){
@@ -847,7 +835,7 @@ function renderAchievements(stats){
 
 function renderLeaderboard(){
   const monthMap={};
-  data.forEach(r=>{const d=new Date(r.timestamp);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!monthMap[k])monthMap[k]={calls:0,offers:new Set(),pas:new Set(),k};if(r.type==='call'||r.type==='cold_call'||r.type==='follow_up_call')monthMap[k].calls++;if(r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer'))monthMap[k].offers.add(r.contact_id);if(r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('purchase agreement sent'))monthMap[k].pas.add(r.contact_id);});
+  data.forEach(r=>{const d=new Date(r.timestamp);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!monthMap[k])monthMap[k]={calls:0,offers:new Set(),pas:new Set(),k};if(r.type==='call'||r.type==='follow_up_call')monthMap[k].calls++;if(r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer'))monthMap[k].offers.add(r.contact_id);if(r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('purchase agreement sent'))monthMap[k].pas.add(r.contact_id);});
   const months=Object.values(monthMap).map(m=>({k:m.k,calls:m.calls,offers:m.offers.size,pas:m.pas.size,score:m.calls+m.offers.size*50+m.pas.size*150})).sort((a,b)=>b.score-a.score).slice(0,5);
   if(!months.length){document.getElementById('leaderboard').innerHTML=`<div style="font-size:11px;color:var(--text3);padding:10px 0;">No monthly data yet. Keep grinding — your best months will appear here.</div>`;return;}
   const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
@@ -884,13 +872,13 @@ function loadSaved(){
 
   const g=localStorage.getItem('ehb_live_goals');if(g)goals=JSON.parse(g);
   const e=localStorage.getItem('ehb_live_exp');if(e)expenses=JSON.parse(e);
-  document.getElementById('g-cold').value=goals.cold;document.getElementById('g-fu').value=goals.fu;document.getElementById('g-contacts').value=goals.contacts;document.getElementById('g-offers').value=goals.offers;document.getElementById('g-deals').value=goals.deals;document.getElementById('g-rev').value=goals.rev;
+  document.getElementById('g-fu').value=goals.fu;document.getElementById('g-offers').value=goals.offers;document.getElementById('g-deals').value=goals.deals;document.getElementById('g-rev').value=goals.rev;
   document.getElementById('e-list').value=expenses.list;document.getElementById('e-dialer').value=expenses.dialer;document.getElementById('e-marketing').value=expenses.marketing;document.getElementById('e-labor').value=expenses.labor;document.getElementById('e-other').value=expenses.other;
   document.getElementById('r-lead').value=localStorage.getItem('r-lead')||10;document.getElementById('r-offer').value=localStorage.getItem('r-offer')||5.5;document.getElementById('r-contract').value=localStorage.getItem('r-contract')||25;document.getElementById('r-dealval').value=localStorage.getItem('r-dealval')||12000;
 }
 
 function saveGoals(){
-  goals={cold:+document.getElementById('g-cold').value||500,fu:+document.getElementById('g-fu').value||35,contacts:+document.getElementById('g-contacts').value||10000,offers:+document.getElementById('g-offers').value||18,deals:+document.getElementById('g-deals').value||1,rev:+document.getElementById('g-rev').value||12000};
+  goals={cold:0,fu:+document.getElementById('g-fu').value||35,contacts:10000,offers:+document.getElementById('g-offers').value||18,deals:+document.getElementById('g-deals').value||1,rev:+document.getElementById('g-rev').value||12000};
   localStorage.setItem('ehb_live_goals',JSON.stringify(goals));localStorage.setItem('r-lead',document.getElementById('r-lead').value);localStorage.setItem('r-offer',document.getElementById('r-offer').value);localStorage.setItem('r-contract',document.getElementById('r-contract').value);localStorage.setItem('r-dealval',document.getElementById('r-dealval').value);
   render();alert('Goals saved!');
 }
@@ -926,32 +914,26 @@ function render(){
   const f=data.filter(r=>inR(r,start,end));
   const allS=data.filter(r=>r.type==='stage_change');
   const fS=f.filter(r=>r.type==='stage_change');
-  const cold=f.filter(r=>r.type==='cold_call'||r.type==='call').length;
-  const contacts=f.filter(r=>r.type==='contact_created').length;
   function usc(rows,k){return new Set(rows.filter(r=>r.stage&&r.stage.toLowerCase().includes(k)).map(r=>r.contact_id)).size;}
   const newLeads=usc(fS,'new lead');const verbal=usc(fS,'verbal offer');const paSent=usc(fS,'purchase agreement sent');
   const closedRows=f.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed'));
   const closedIds=[...new Set(closedRows.map(r=>r.contact_id))];
   const dealsClosedCount=closedIds.length;
   const rev=closedIds.reduce((s,cid)=>{const l=closedRows.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return s+(parseFloat(l?.opp_value)||0);},0);
-  const coldG=Math.round(goals.cold*workDays);const fuG=Math.round(goals.fu*workDays);const offerG=Math.round(goals.offers*weekF);
+const fuG=Math.round(goals.fu*workDays);const offerG=Math.round(goals.offers*weekF);
   const newLeadG=Math.max(1,Math.round(contG*.1));const dealG=Math.max(1,Math.round(goals.deals*monthF));const revG=Math.round(goals.rev*monthF);
   const dEl=Math.max(1,Math.ceil((TODAY-start)/864e5));const dTot=Math.max(1,Math.ceil((end-start)/864e5)+1);
   function pm(v,g){const p=Math.round((v/dEl)*dTot);const pct=Math.round((p/Math.max(g,1))*100);return`Pace: ${fmtN(p)} (${pct}%)`;}
   document.getElementById('hero').innerHTML=hc('Revenue',fmt(rev),'Goal: '+fmt(revG),Math.min(100,Math.round((rev/Math.max(revG,1))*100)),'#185fa5')+hc('Offers made',verbal,'Goal: '+offerG,Math.min(100,Math.round((verbal/Math.max(offerG,1))*100)),'#7f77dd')+hc('PAs sent',paSent,'Unique contacts in range','','#d85a30')+hc('Deals closed',dealsClosedCount,'Goal: '+dealG,Math.min(100,Math.round((dealsClosedCount/Math.max(dealG,1))*100)),'#1d9e75');
   const acqContactIds=new Set(allS.filter(r=>r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
-  const warmTotal=f.filter(r=>(r.type==='follow_up_call'||r.type==='call'||r.type==='cold_call')&&acqContactIds.has(r.contact_id)).length;
-  const trueCold=f.filter(r=>(r.type==='cold_call'||r.type==='call')&&!acqContactIds.has(r.contact_id)).length;
-  const coldPct=Math.round((cold/Math.max(coldG,1))*100);
+  const warmTotal=f.filter(r=>(r.type==='follow_up_call'||r.type==='call')&&acqContactIds.has(r.contact_id)).length;
   const pipeStages=['new lead','attempting','follow up','nurture','verbal offer','purchase agreement sent','purchase agreement sign'];
   const seenPipe=new Set();let pipeVal=0;
   pipeStages.forEach(key=>{const acqRows=data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')&&r.stage&&r.stage.toLowerCase().includes(key));acqRows.forEach(r=>{if(!seenPipe.has(r.contact_id)){seenPipe.add(r.contact_id);const l=acqRows.filter(x=>x.contact_id===r.contact_id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];pipeVal+=parseFloat(l?.opp_value)||0;}});});
-  const sc=coldPct>=80?'#1d9e75':coldPct>=50?'#ba7517':'#e24b4a';
-  document.getElementById('pulse-bar').innerHTML=`<div class="pulse-dot" style="background:${sc};"></div><span>You have <strong>${fmt(pipeVal)}</strong> in active pipeline, <strong>${verbal}</strong> verbal offer${verbal!==1?'s':''} out, and <strong>${paSent}</strong> PA${paSent!==1?'s':''} sent. Cold calls today: <strong style="color:${sc};">${cold} / ${coldG}</strong> (${coldPct}% of goal).</span>`;
+  const sc=verbal>0?'#1d9e75':paSent>0?'#ba7517':'#00C9A7';
+  document.getElementById('pulse-bar').innerHTML=`<div class="pulse-dot" style="background:${sc};"></div><span>You have <strong>${fmt(pipeVal)}</strong> in active pipeline, <strong>${verbal}</strong> verbal offer${verbal!==1?'s':''} out, and <strong>${paSent}</strong> PA${paSent!==1?'s':''} sent.</span>`;
   document.getElementById('score-grid').innerHTML=[
-    {icon:'📞',lb:'Cold calls',v:cold,g:coldG,ibg:'#185fa520',pace:pm(cold,coldG)},
     {icon:'🔥',lb:'Warm calls',v:warmTotal,g:fuG,ibg:'#1d9e7520',pace:pm(warmTotal,fuG)},
-    {icon:'👤',lb:'New contacts',v:contacts,g:contG,ibg:'#ba751720',pace:'Monthly goal: '+fmtN(goals.contacts)},
     {icon:'🏠',lb:'New leads',v:newLeads,g:newLeadG,ibg:'#7f77dd20',pace:'~10% of contacts'},
     {icon:'💬',lb:'Verbal offers',v:verbal,g:offerG,ibg:'#d85a3020',pace:''},
     {icon:'📄',lb:'PAs sent',v:paSent,g:Math.max(1,Math.round(offerG*.055)),ibg:'#63992220',pace:''},
@@ -966,18 +948,18 @@ function render(){
 
 function renderFunnel(stages){
   function uc(k){return new Set(stages.filter(r=>r.stage&&r.stage.toLowerCase().includes(k)).map(r=>r.contact_id)).size;}
-  const items=[{lb:'Contacts added',cnt:data.filter(r=>r.type==='contact_created').length,col:'#378add'},{lb:'New leads (cold caller)',cnt:uc('new lead'),col:'#1d9e75'},{lb:'Appointments (SMS bot)',cnt:uc('appointment'),col:'#639922'},{lb:'Attempting contact',cnt:uc('attempting'),col:'#ba7517'},{lb:'Follow ups',cnt:uc('follow up'),col:'#7f77dd'},{lb:'Nurture',cnt:uc('nurture'),col:'#d4537e'},{lb:'Verbal offer made',cnt:uc('verbal offer'),col:'#ef9f27'},{lb:'PA sent',cnt:uc('purchase agreement sent'),col:'#d85a30'},{lb:'PA signed / deal',cnt:uc('purchase agreement sign'),col:'#1d9e75'}];
+  const items=[{lb:'New leads (cold caller)',cnt:uc('new lead'),col:'#1d9e75'},{lb:'Appointments (SMS bot)',cnt:uc('appointment'),col:'#639922'},{lb:'Attempting contact',cnt:uc('attempting'),col:'#ba7517'},{lb:'Follow ups',cnt:uc('follow up'),col:'#7f77dd'},{lb:'Nurture',cnt:uc('nurture'),col:'#d4537e'},{lb:'Verbal offer made',cnt:uc('verbal offer'),col:'#ef9f27'},{lb:'PA sent',cnt:uc('purchase agreement sent'),col:'#d85a30'},{lb:'PA signed / deal',cnt:uc('purchase agreement sign'),col:'#1d9e75'}];
   const max=Math.max(...items.map(i=>i.cnt),1);
   document.getElementById('funnel').innerHTML=items.map(i=>`<div class="fr"><div class="fl">${i.lb}</div><div class="fw"><div class="ff" style="width:${Math.max(3,Math.round((i.cnt/max)*100))}%;background:${i.col};">${i.cnt>0?i.cnt:''}</div></div><div class="fc2">${i.cnt}</div></div>`).join('');
 }
 
 function renderConv(f,fS){
   function uc(rows,k){return new Set(rows.filter(r=>r.stage&&r.stage.toLowerCase().includes(k)).map(r=>r.contact_id)).size;}
-  const dials=Math.max(f.filter(r=>r.type==='cold_call'||r.type==='call').length,1);const contacts=Math.max(f.filter(r=>r.type==='contact_created').length,1);
+  const dials=Math.max(f.filter(r=>r.type==='follow_up_call').length,1);const contacts=Math.max(new Set(f.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id)).size,1);
   const nl=Math.max(uc(fS,'new lead'),1);const verbal=Math.max(uc(fS,'verbal offer'),1);const paSent=Math.max(uc(fS,'purchase agreement sent'),1);
   const closed=new Set(f.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed')).map(r=>r.contact_id)).size;
   function rt(a,b){return b<=0?'--':(Math.round((a/b)*1000)/10)+'%';}
-  document.getElementById('conv').innerHTML=[['Contacts added','New leads',rt(nl,contacts)],['Cold calls (dials)','New leads',rt(nl,dials)],['New leads','Verbal offer',rt(verbal,nl)],['Verbal offer','PA sent',rt(paSent,verbal)],['PA sent','Deal closed',rt(closed,paSent)]].map(([from,to,rate])=>`<div class="crow"><span style="color:var(--text2);">${from}</span><span style="color:var(--text3);font-size:10px;">→</span><span style="color:var(--text2);">${to}</span><span style="flex:1;"></span><span style="font-weight:700;">${rate}</span></div>`).join('');
+  document.getElementById('conv').innerHTML=[['Contacts added','New leads',rt(nl,contacts)],['Warm calls','New leads',rt(nl,dials)],['New leads','Verbal offer',rt(verbal,nl)],['Verbal offer','PA sent',rt(paSent,verbal)],['PA sent','Deal closed',rt(closed,paSent)]].map(([from,to,rate])=>`<div class="crow"><span style="color:var(--text2);">${from}</span><span style="color:var(--text3);font-size:10px;">→</span><span style="color:var(--text2);">${to}</span><span style="flex:1;"></span><span style="font-weight:700;">${rate}</span></div>`).join('');
 }
 
 function getFellThroughIds(){return new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal fell through')).map(r=>r.contact_id));}
@@ -1021,11 +1003,10 @@ function renderDealVel(stages){
 
 function renderCallBreakdown(f,acqContactIds,workDays){
   const warmFU=f.filter(r=>r.type==='follow_up_call'&&acqContactIds.has(r.contact_id)).length;
-  const warmCold=f.filter(r=>(r.type==='cold_call'||r.type==='call')&&acqContactIds.has(r.contact_id)).length;
-  const trueCold=f.filter(r=>(r.type==='cold_call'||r.type==='call')&&!acqContactIds.has(r.contact_id)).length;
-  const totalWarm=warmFU+warmCold;const fuGoal=Math.round(goals.fu*workDays);const coldGoal=Math.round(goals.cold*workDays);
+  const warmCold=f.filter(r=>r.type==='call'&&acqContactIds.has(r.contact_id)).length;
+  const totalWarm=warmFU+warmCold;const fuGoal=Math.round(goals.fu*workDays);
   function bar(v,g,col){const p=Math.min(100,Math.round((v/Math.max(g,1))*100));return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><div style="width:150px;font-size:11px;color:var(--text2);flex-shrink:0;">${v.toLocaleString()} <span style="font-size:10px;color:var(--text3);">/ ${g.toLocaleString()}</span></div><div style="flex:1;background:var(--surface2);border-radius:99px;height:7px;overflow:hidden;"><div style="width:${Math.max(3,p)}%;height:100%;background:${col};border-radius:99px;"></div></div><div style="font-size:10px;font-weight:700;width:34px;text-align:right;color:${p>=80?'#1d9e75':p>=50?'#ba7517':'#e24b4a'};">${p}%</div></div>`;}
-  document.getElementById('call-breakdown').innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px;"><div class="ctile"><div class="ctl">Warm calls (total)</div><div class="ctv" style="color:#1d9e75;">${totalWarm}</div><div class="cts">All calls to Acquisitions contacts</div></div><div class="ctile"><div class="ctl">Cold prospecting calls</div><div class="ctv" style="color:#378add;">${trueCold}</div><div class="cts">Contacts not yet in Acquisitions</div></div><div class="ctile"><div class="ctl">Warm follow-up type</div><div class="ctv">${warmFU}</div><div class="cts">Follow-up to warm contact</div></div><div class="ctile"><div class="ctl">Warm cold type</div><div class="ctv">${warmCold}</div><div class="cts">Cold logged, known warm</div></div></div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:7px;">vs goals</div><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Warm calls (goal: ${fuGoal})</div>${bar(totalWarm,fuGoal,'#1d9e75')}<div style="font-size:11px;color:var(--text2);margin-bottom:3px;margin-top:7px;">Cold prospecting calls (goal: ${coldGoal})</div>${bar(trueCold,coldGoal,'#378add')}<div class="note">Cross-referenced by contact ID — any call to a contact in your Acquisitions pipeline counts as a warm call.</div>`;
+  document.getElementById('call-breakdown').innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px;"><div class="ctile"><div class="ctl">Warm calls (total)</div><div class="ctv" style="color:#1d9e75;">${totalWarm}</div><div class="cts">All calls to Acquisitions contacts</div></div><div class="ctile"><div class="ctl">Follow-up calls</div><div class="ctv">${warmFU}</div><div class="cts">Follow-up logged to warm contact</div></div></div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:7px;">vs goals</div><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Warm follow-up calls (goal: ${fuGoal})</div>${bar(totalWarm,fuGoal,'#1d9e75')}<div class="note">Tracks all calls made to contacts in your Acquisitions pipeline.</div>`;
 }
 
 function calcCosts(){
@@ -1033,7 +1014,7 @@ function calcCosts(){
   localStorage.setItem('ehb_live_exp',JSON.stringify(expenses));
   const total=Object.values(expenses).reduce((s,v)=>s+v,0);
   const md=data.filter(r=>{const d=new Date(r.timestamp);return d.getMonth()===TODAY.getMonth()&&d.getFullYear()===TODAY.getFullYear();});
-  const contacts=Math.max(md.filter(r=>r.type==='contact_created').length,1);const nl=Math.max(md.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('new lead')).length,1);const verbal=Math.max(md.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,1);const deals=Math.max(md.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('purchase agreement sign')).length,1);
+  const contacts=Math.max(new Set(md.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id)).size,1);const nl=Math.max(md.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('new lead')).length,1);const verbal=Math.max(md.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,1);const deals=Math.max(md.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('purchase agreement sign')).length,1);
   const closedM=md.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.toLowerCase().includes('disposition')&&r.stage&&r.stage.toLowerCase().includes('deal closed'));const closedMIds=[...new Set(closedM.map(r=>r.contact_id))];const rev=closedMIds.reduce((s,cid)=>{const l=closedM.filter(r=>r.contact_id===cid).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];return s+(parseFloat(l?.opp_value)||0);},0);
   if(!total){document.getElementById('cost-results').innerHTML=`<div class="note" style="margin-top:8px;">Enter expenses above to see ROI and cost metrics.</div>`;return;}
   const roi=Math.round((rev/total)*10)/10;const rc=pcc(Math.min(100,roi>=5?100:roi>=2?65:20));
@@ -1052,9 +1033,9 @@ function renderDigest(){
   function wc(d,...types){return d.filter(r=>types.includes(r.type)).length;}
   function chg(a,b){if(!b)return a>0?'+'+a:'--';const p=Math.round(((a-b)/b)*100);return(p>=0?'+':'')+p+'%';}
   function cc(a,b){return a>=b?'#1d9e75':'#e24b4a';}
-  const metrics=[{lb:'Cold calls',tw:wc(tw,'cold_call','call'),lw:wc(lw,'cold_call','call')},{lb:'Follow-up calls',tw:wc(tw,'follow_up_call'),lw:wc(lw,'follow_up_call')},{lb:'New contacts',tw:wc(tw,'contact_created'),lw:wc(lw,'contact_created')},{lb:'Verbal offers',tw:tw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,lw:lw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length}];
-  const coldPct=Math.round((wc(tw,'cold_call','call')/Math.max(goals.cold*5,1))*100);
-  const insight=coldPct>=80?'Strong week — dial volume is solid. Keep the momentum going.':coldPct>=50?'Dial volume is behind pace. Prioritize hitting your daily call target.':'Call volume is significantly off track. Dials are your most important activity — everything downstream depends on it.';
+  const metrics=[{lb:'Follow-up calls',tw:wc(tw,'follow_up_call'),lw:wc(lw,'follow_up_call')},{lb:'Verbal offers',tw:tw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length,lw:lw.filter(r=>r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer')).length}];
+  const warmPct=Math.round((wc(tw,'follow_up_call','call')/Math.max(goals.fu*5,1))*100);
+  const insight=warmPct>=80?'Strong week — follow-up volume is solid. Keep the momentum going.':warmPct>=50?'Follow-up volume is behind pace. Prioritize staying in touch with your warm leads.':'Follow-up activity is low this week. Your warm leads need consistent contact to convert.';
   document.getElementById('weekly-digest').innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})} — ${TODAY.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>${metrics.map(m=>`<div class="digrow"><div class="diglbl">${m.lb}</div><div class="dignums"><span class="digval">${m.tw.toLocaleString()}</span><span style="font-size:11px;font-weight:700;color:${cc(m.tw,m.lw)};">${chg(m.tw,m.lw)} vs last week</span></div></div>`).join('')}<div style="margin-top:10px;padding:10px 13px;background:var(--surface2);border-radius:9px;font-size:11px;line-height:1.6;"><strong>Insight: </strong>${insight}</div>`;
 }
 
@@ -1062,9 +1043,9 @@ let tI=null,rI=null;
 function renderTrend(){
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';const gc=isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)';
   const labels=[],cold=[],warm=[];const allAcqIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
-  for(let i=89;i>=0;i--){const d=new Date(TODAY);d.setDate(TODAY.getDate()-i);labels.push(i%14===0||i===0?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'');const rows=data.filter(r=>{const rd=new Date(r.timestamp);return rd.toDateString()===d.toDateString();});cold.push(rows.filter(r=>(r.type==='cold_call'||r.type==='call')&&!allAcqIds.has(r.contact_id)).length);warm.push(rows.filter(r=>(r.type==='follow_up_call'||(r.type==='call'||r.type==='cold_call'))&&allAcqIds.has(r.contact_id)).length);}
+  for(let i=89;i>=0;i--){const d=new Date(TODAY);d.setDate(TODAY.getDate()-i);labels.push(i%14===0||i===0?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'');const rows=data.filter(r=>{const rd=new Date(r.timestamp);return rd.toDateString()===d.toDateString();});warm.push(rows.filter(r=>(r.type==='follow_up_call'||r.type==='call')&&allAcqIds.has(r.contact_id)).length);}
   if(tI)tI.destroy();
-  tI=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels,datasets:[{label:'Cold calls',data:cold,borderColor:'#00C9A7',backgroundColor:'rgba(0,201,167,0.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2},{label:'Warm calls',data:warm,borderColor:'#00B4A6',backgroundColor:'rgba(0,180,166,0.05)',fill:true,tension:.3,pointRadius:0,borderWidth:2,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:0,color:isDark?'#666':'#999'},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},color:isDark?'#666':'#999'},grid:{color:gc}}}}});
+  tI=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels,datasets:[{label:'Warm calls',data:warm,borderColor:'#00C9A7',backgroundColor:'rgba(0,201,167,0.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:0,color:isDark?'#666':'#999'},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},color:isDark?'#666':'#999'},grid:{color:gc}}}}});
 }
 
 function renderRev(){
