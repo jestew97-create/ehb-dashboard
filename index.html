@@ -1077,10 +1077,8 @@ function parseSheet(values){if(!values||values.length<2)return[];return values.s
 
 async function loadData(){
   const pill=document.getElementById('status-pill');pill.textContent='Connecting...';pill.className='pill pill-load';
-  const sheetId='1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY';
-  const apiKey='AIzaSyDGqOO4Ta1KGeGQC58IU_EDGheze0I45KE';
   const range=encodeURIComponent('Pipeline Stages!A:H');
-  const url='https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/'+range+'?key='+apiKey+'&_='+Date.now();
+  const url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+range+'?key='+API_KEY+'&_='+Date.now();
   try{
     const res=await fetch(url,{cache:'no-store'});
     if(!res.ok){const body=await res.text().catch(()=>'');throw new Error('HTTP '+res.status+(body?' — '+body.slice(0,140):''));}
