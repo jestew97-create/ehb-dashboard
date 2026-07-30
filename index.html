@@ -1077,12 +1077,15 @@ function parseSheet(values){if(!values||values.length<2)return[];return values.s
 
 async function loadData(){
   const pill=document.getElementById('status-pill');pill.textContent='Connecting...';pill.className='pill pill-load';
-  const sheetUrl='https://docs.google.com/spreadsheets/d/1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY/gviz/tq?tqx=out:csv&gid=590381830';
-  const proxied='https://api.allorigins.win/raw?url='+encodeURIComponent(sheetUrl)+'&_='+Date.now();
+  const sheetId='1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY';
+  const apiKey='AIzaSyDGqOO4Ta1KGeGQC58IU_EDGheze0I45KE';
+  const range=encodeURIComponent('Pipeline Stages!A:H');
+  const url='https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/'+range+'?key='+apiKey+'&_='+Date.now();
   try{
-    const res=await fetch(proxied,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);
-    const csv=await res.text();const rows=csv.trim().split('\n').slice(1);
-    const values=rows.map(row=>{const cols=[];let cur='',inQ=false;for(let i=0;i<row.length;i++){const c=row[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=c;}}cols.push(cur.trim());return cols;});
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok){const body=await res.text().catch(()=>'');throw new Error('HTTP '+res.status+(body?' — '+body.slice(0,140):''));}
+    const json=await res.json();
+    const values=json.values||[];
     if(values.length>0){data=parseSheet(values);pill.textContent='✓ Live';pill.className='pill pill-live';}else{throw new Error('No data');}
   }catch(e){pill.textContent='⚠ '+(e.message||'Connection error');pill.className='pill pill-error';}
   render();
