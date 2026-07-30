@@ -1075,27 +1075,15 @@ function loadQP(){const s=localStorage.getItem('ehb_qp');if(s){const p=JSON.pars
 
 function parseSheet(values){if(!values||values.length<2)return[];return values.slice(1).map(r=>({timestamp:r[0]||'',type:r[1]||'',contact_name:r[2]||'',contact_id:r[3]||'',pipeline:r[4]||'',stage:r[5]||'',opp_value:parseFloat((r[6]||'').toString().replace(/[^0-9.]/g,''))||0,notes:r[7]||''})).filter(r=>r.timestamp);}
 
-function parseSheetJSON(rows){
-  if(!rows||!rows.length)return[];
-  return rows.map(r=>({
-    timestamp:r['Timestamp']||'',
-    type:r['Event Type']||'',
-    contact_name:r['Contact Name']||'',
-    contact_id:r['Contact ID']||'',
-    pipeline:r['Pipeline']||'',
-    stage:r['Stage']||'',
-    opp_value:parseFloat((r['Opportunity Value']||'').toString().replace(/[^0-9.]/g,''))||0,
-    notes:r['Notes']||''
-  })).filter(r=>r.timestamp);
-}
-
 async function loadData(){
   const pill=document.getElementById('status-pill');pill.textContent='Connecting...';pill.className='pill pill-load';
+  const sheetUrl='https://docs.google.com/spreadsheets/d/1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY/gviz/tq?tqx=out:csv&gid=590381830';
+  const proxied='https://api.allorigins.win/raw?url='+encodeURIComponent(sheetUrl)+'&_='+Date.now();
   try{
-    const url='https://opensheet.elk.sh/1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY/1?_='+Date.now();
-    const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);
-    const rows=await res.json();
-    if(Array.isArray(rows)&&rows.length>0){data=parseSheetJSON(rows);pill.textContent='✓ Live';pill.className='pill pill-live';}else{throw new Error('No data');}
+    const res=await fetch(proxied,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);
+    const csv=await res.text();const rows=csv.trim().split('\n').slice(1);
+    const values=rows.map(row=>{const cols=[];let cur='',inQ=false;for(let i=0;i<row.length;i++){const c=row[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=c;}}cols.push(cur.trim());return cols;});
+    if(values.length>0){data=parseSheet(values);pill.textContent='✓ Live';pill.className='pill pill-live';}else{throw new Error('No data');}
   }catch(e){pill.textContent='⚠ '+(e.message||'Connection error');pill.className='pill pill-error';}
   render();
 }
