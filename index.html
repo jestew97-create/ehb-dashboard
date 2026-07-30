@@ -797,7 +797,7 @@ function renderBoss(stats){
 
 function renderDailyQuests(stats){
   const allAcqIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
-  const warmToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&(r.type==='follow_up_call'||(r.type==='call'&&allAcqIds.has(r.contact_id)));}).length;
+  const warmToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&(r.type==='follow_up_call'||r.type==='call');}).length;
   const offersToday=new Set(data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&r.type==='stage_change'&&r.stage&&r.stage.toLowerCase().includes('verbal offer');}).map(r=>r.contact_id)).size;
   const stagesMovedToday=data.filter(r=>{const d=new Date(r.timestamp);return d.toDateString()===TODAY.toDateString()&&r.type==='stage_change';}).length;
   const quests=[
@@ -926,7 +926,7 @@ const fuG=Math.round(goals.fu*workDays);const offerG=Math.round(goals.offers*wee
   function pm(v,g){const p=Math.round((v/dEl)*dTot);const pct=Math.round((p/Math.max(g,1))*100);return`Pace: ${fmtN(p)} (${pct}%)`;}
   document.getElementById('hero').innerHTML=hc('Revenue',fmt(rev),'Goal: '+fmt(revG),Math.min(100,Math.round((rev/Math.max(revG,1))*100)),'#185fa5')+hc('Offers made',verbal,'Goal: '+offerG,Math.min(100,Math.round((verbal/Math.max(offerG,1))*100)),'#7f77dd')+hc('PAs sent',paSent,'Unique contacts in range','','#d85a30')+hc('Deals closed',dealsClosedCount,'Goal: '+dealG,Math.min(100,Math.round((dealsClosedCount/Math.max(dealG,1))*100)),'#1d9e75');
   const acqContactIds=new Set(allS.filter(r=>r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
-  const warmTotal=f.filter(r=>(r.type==='follow_up_call'||r.type==='call')&&acqContactIds.has(r.contact_id)).length;
+  const warmTotal=f.filter(r=>r.type==='follow_up_call'||r.type==='call').length;
   const pipeStages=['new lead','attempting','follow up','nurture','verbal offer','purchase agreement sent','purchase agreement sign'];
   const seenPipe=new Set();let pipeVal=0;
   pipeStages.forEach(key=>{const acqRows=data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')&&r.stage&&r.stage.toLowerCase().includes(key));acqRows.forEach(r=>{if(!seenPipe.has(r.contact_id)){seenPipe.add(r.contact_id);const l=acqRows.filter(x=>x.contact_id===r.contact_id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];pipeVal+=parseFloat(l?.opp_value)||0;}});});
@@ -1002,11 +1002,11 @@ function renderDealVel(stages){
 }
 
 function renderCallBreakdown(f,acqContactIds,workDays){
-  const warmFU=f.filter(r=>r.type==='follow_up_call'&&acqContactIds.has(r.contact_id)).length;
-  const warmCold=f.filter(r=>r.type==='call'&&acqContactIds.has(r.contact_id)).length;
+  const warmFU=f.filter(r=>r.type==='follow_up_call').length;
+  const warmCold=f.filter(r=>r.type==='call').length;
   const totalWarm=warmFU+warmCold;const fuGoal=Math.round(goals.fu*workDays);
   function bar(v,g,col){const p=Math.min(100,Math.round((v/Math.max(g,1))*100));return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><div style="width:150px;font-size:11px;color:var(--text2);flex-shrink:0;">${v.toLocaleString()} <span style="font-size:10px;color:var(--text3);">/ ${g.toLocaleString()}</span></div><div style="flex:1;background:var(--surface2);border-radius:99px;height:7px;overflow:hidden;"><div style="width:${Math.max(3,p)}%;height:100%;background:${col};border-radius:99px;"></div></div><div style="font-size:10px;font-weight:700;width:34px;text-align:right;color:${p>=80?'#1d9e75':p>=50?'#ba7517':'#e24b4a'};">${p}%</div></div>`;}
-  document.getElementById('call-breakdown').innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px;"><div class="ctile"><div class="ctl">Warm calls (total)</div><div class="ctv" style="color:#1d9e75;">${totalWarm}</div><div class="cts">All calls to Acquisitions contacts</div></div><div class="ctile"><div class="ctl">Follow-up calls</div><div class="ctv">${warmFU}</div><div class="cts">Follow-up logged to warm contact</div></div></div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:7px;">vs goals</div><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Warm follow-up calls (goal: ${fuGoal})</div>${bar(totalWarm,fuGoal,'#1d9e75')}<div class="note">Tracks all calls made to contacts in your Acquisitions pipeline.</div>`;
+  document.getElementById('call-breakdown').innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px;"><div class="ctile"><div class="ctl">Warm calls (total)</div><div class="ctv" style="color:#1d9e75;">${totalWarm}</div><div class="cts">All calls logged (Phase 1: all calls are warm)</div></div><div class="ctile"><div class="ctl">Follow-up calls</div><div class="ctv">${warmFU}</div><div class="cts">Follow-up logged to warm contact</div></div></div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:7px;">vs goals</div><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Warm follow-up calls (goal: ${fuGoal})</div>${bar(totalWarm,fuGoal,'#1d9e75')}<div class="note">Phase 1: every call counts as warm — you only call leads booked by the SMS bot. Cold call tracking returns in Phase 2.</div>`;
 }
 
 function calcCosts(){
@@ -1043,7 +1043,7 @@ let tI=null,rI=null;
 function renderTrend(){
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';const gc=isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)';
   const labels=[],cold=[],warm=[];const allAcqIds=new Set(data.filter(r=>r.type==='stage_change'&&r.pipeline&&r.pipeline.includes('Acquisitions')).map(r=>r.contact_id));
-  for(let i=89;i>=0;i--){const d=new Date(TODAY);d.setDate(TODAY.getDate()-i);labels.push(i%14===0||i===0?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'');const rows=data.filter(r=>{const rd=new Date(r.timestamp);return rd.toDateString()===d.toDateString();});warm.push(rows.filter(r=>(r.type==='follow_up_call'||r.type==='call')&&allAcqIds.has(r.contact_id)).length);}
+  for(let i=89;i>=0;i--){const d=new Date(TODAY);d.setDate(TODAY.getDate()-i);labels.push(i%14===0||i===0?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'');const rows=data.filter(r=>{const rd=new Date(r.timestamp);return rd.toDateString()===d.toDateString();});warm.push(rows.filter(r=>r.type==='follow_up_call'||r.type==='call').length);}
   if(tI)tI.destroy();
   tI=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels,datasets:[{label:'Warm calls',data:warm,borderColor:'#00C9A7',backgroundColor:'rgba(0,201,167,0.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:0,color:isDark?'#666':'#999'},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10},color:isDark?'#666':'#999'},grid:{color:gc}}}}});
 }
