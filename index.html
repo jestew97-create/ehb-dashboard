@@ -1092,7 +1092,7 @@ function parseSheetJSON(rows){
 async function loadData(){
   const pill=document.getElementById('status-pill');pill.textContent='Connecting...';pill.className='pill pill-load';
   try{
-    const url='https://opensheet.elk.sh/1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY/Pipeline%20Stages?_='+Date.now();
+    const url='https://opensheet.elk.sh/1lY9D-AvvXpU1-wuxOkz9h4CfKF0N9wYbXr7dE5eZ_WY/1?_='+Date.now();
     const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);
     const rows=await res.json();
     if(Array.isArray(rows)&&rows.length>0){data=parseSheetJSON(rows);pill.textContent='✓ Live';pill.className='pill pill-live';}else{throw new Error('No data');}
